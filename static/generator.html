@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>KISSS</title>
+</head>
+<body>
+<h1>Stats-URL Generator</h1>
+<div>
+    <label>
+        View:
+        <select id="view-type">
+            <option value="pages">Pages</option>
+            <option value="referrers">Referrers</option>
+            <option value="hours">Hours</option>
+            <option value="days">Days</option>
+            <option value="weeks">Weeks</option>
+            <option value="months">Months</option>
+        </select>
+    </label><br>
+    <label>
+        Format:
+        <select id="format-type">
+            <option value="plain">Plain</option>
+            <option value="json">JSON</option>
+            <option value="chart">Chart</option>
+        </select>
+    </label><br>
+    <label for="from-time">From:</label>
+    <input type="date" id="from-time"><br>
+    <label for="to-time">To:</label>
+    <input type="date" id="to-time"><br>
+    <button type="button" onclick="openStats()">Open stats</button>
+</div>
+<script>
+    function openStats() {
+        let statsUrl = new URL(document.documentURI).origin + "/stats?";
+        let viewType = this.document.getElementById("view-type").value;
+        statsUrl += "view=" + viewType + "&";
+        let formatType = this.document.getElementById("format-type").value;
+        statsUrl += "format=" + formatType + "&";
+        let fromTime = formatDate(this.document.getElementById("from-time").value);
+        if (fromTime.indexOf("NaN") < 0) statsUrl += "from=" + fromTime + "&";
+        let toTime = formatDate(this.document.getElementById("to-time").value);
+        if (toTime.indexOf("NaN") < 0) statsUrl += "to=" + toTime + "&";
+        console.log(statsUrl);
+        this.window.open(statsUrl, "_blank");
+    }
+
+    function formatDate(dateString) {
+        let date = new Date(Date.parse(dateString));
+        let year = date.getFullYear();
+        let months = date.getMonth() + 1;
+        let day = date.getDate();
+        return year + "-" + (months < 10 ? "0" + months : months) + "-" + (day < 10 ? "0" + day : day);
+    }
+</script>
+</body>
+</html>

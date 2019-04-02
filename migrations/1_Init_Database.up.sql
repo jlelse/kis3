@@ -1,0 +1,6 @@
+CREATE TABLE `views`
+(
+    `url`  TEXT NOT NULL,
+    `time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    `ref`  TEXT      DEFAULT '' NOT NULL
+);
