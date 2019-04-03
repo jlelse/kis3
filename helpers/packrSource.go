@@ -15,13 +15,13 @@ import (
 
 type PackrSource struct {
 	lock       sync.Mutex
-	box        *packr.Box
+	Box        *packr.Box
 	migrations *source.Migrations
 }
 
 func (s *PackrSource) loadMigrations() (*source.Migrations, error) {
 	migrations := source.NewMigrations()
-	for _, filename := range s.box.List() {
+	for _, filename := range s.Box.List() {
 		migration, err := source.Parse(filename)
 		if err != nil {
 			return nil, err
@@ -34,7 +34,6 @@ func (s *PackrSource) loadMigrations() (*source.Migrations, error) {
 func (s *PackrSource) Open(url string) (source.Driver, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	s.box = packr.New("migrations", "../migrations")
 	if migrations, err := s.loadMigrations(); err != nil {
 		return nil, err
 	} else {
@@ -78,7 +77,7 @@ func (s *PackrSource) ReadUp(version uint) (r io.ReadCloser, identifier string, 
 	if migration, ok := s.migrations.Up(version); !ok {
 		return nil, "", os.ErrNotExist
 	} else {
-		b, _ := s.box.Find(migration.Raw)
+		b, _ := s.Box.Find(migration.Raw)
 		return ioutil.NopCloser(bytes.NewBuffer(b)),
 			migration.Identifier,
 			nil
@@ -89,7 +88,7 @@ func (s *PackrSource) ReadDown(version uint) (r io.ReadCloser, identifier string
 	if migration, ok := s.migrations.Down(version); !ok {
 		return nil, "", migrate.ErrNilVersion
 	} else {
-		b := s.box.Bytes(migration.Raw)
+		b := s.Box.Bytes(migration.Raw)
 		return ioutil.NopCloser(bytes.NewBuffer(b)),
 			migration.Identifier,
 			nil

@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/gobuffalo/packr/v2"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	_ "github.com/mattn/go-sqlite3"
@@ -30,7 +31,9 @@ func initDatabase() (database *Database, e error) {
 }
 
 func migrateDatabase(database *sql.DB) (e error) {
-	sourceDriver, e := (&helpers.PackrSource{}).Open("")
+	sourceDriver, e := (&helpers.PackrSource{
+		Box: packr.New("migrations", "migrations"),
+	}).Open("")
 	if e != nil {
 		return
 	}
