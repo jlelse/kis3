@@ -24,7 +24,7 @@ func init() {
 	appConfig.dbPath = dbPath()
 	appConfig.statsUsername = statsUsername()
 	appConfig.statsPassword = statsPassword()
-	appConfig.statsAuth = len(appConfig.statsUsername) > 0 && len(appConfig.statsPassword) > 0
+	appConfig.statsAuth = statsAuth(appConfig)
 }
 
 func port() string {
@@ -61,4 +61,8 @@ func statsUsername() (username string) {
 func statsPassword() (password string) {
 	password = os.Getenv("STATS_PASSWORD")
 	return
+}
+
+func statsAuth(ac *config) bool {
+	return len(ac.statsUsername) > 0 && len(ac.statsPassword) > 0
 }
