@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gobuffalo/packr/v2"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/wcharczuk/go-chart"
 	"github.com/wcharczuk/go-chart/drawing"
@@ -15,9 +16,10 @@ import (
 )
 
 type kis3 struct {
-	db     *Database
-	router *mux.Router
-	fs     http.Handler
+	db        *Database
+	router    *mux.Router
+	staticBox *packr.Box
+	staticFS  http.Handler
 }
 
 var (
@@ -43,9 +45,18 @@ func (kis3 *kis3) setupDB() (e error) {
 
 func (kis3 *kis3) setupRouter() {
 	kis3.router = mux.NewRouter()
-	kis3.router.HandleFunc("/view", kis3.trackView)
+
+	corsHandler := handlers.CORS(handlers.AllowedOrigins([]string{"*"}))
+
+	viewRouter := kis3.router.PathPrefix("/view").Subrouter()
+	viewRouter.Use(corsHandler)
+	viewRouter.Path("").HandlerFunc(kis3.trackView)
+
 	kis3.router.HandleFunc("/stats", kis3.requestStats)
-	kis3.router.PathPrefix("/").Handler(http.HandlerFunc(kis3.serveStaticFile))
+
+	staticRouter := kis3.router.PathPrefix("").Subrouter()
+	staticRouter.Use(corsHandler)
+	staticRouter.PathPrefix("").Handler(http.HandlerFunc(kis3.serveStaticFile))
 }
 
 func (kis3 kis3) startListening() {
@@ -56,7 +67,7 @@ func (kis3 kis3) startListening() {
 }
 
 func (kis3 kis3) trackView(w http.ResponseWriter, r *http.Request) {
-	url := r.URL.Query().Get("url")
+	url := r.Header.Get("Referer") // URL of requesting source
 	ref := r.URL.Query().Get("ref")
 	if r.Header.Get("DNT") == "1" && appConfig.dnt {
 		fmt.Println("Not tracking because of DNT")
@@ -67,15 +78,21 @@ func (kis3 kis3) trackView(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func sendHelloResponse(w http.ResponseWriter) {
+	_, _ = fmt.Fprint(w, "Hello from KISSS")
+}
+
 func (kis3 kis3) serveStaticFile(w http.ResponseWriter, r *http.Request) {
-	if kis3.fs == nil {
-		kis3.fs = http.FileServer(packr.New("staticFiles", "./static"))
+	if kis3.staticBox == nil || kis3.staticFS == nil {
+		kis3.staticBox = packr.New("staticFiles", "./static")
+		kis3.staticFS = http.FileServer(kis3.staticBox)
 	}
-	// Fix, because file server isn't serving index.html otherwise
-	if r.URL.Path == "/" || r.URL.Path == "/index.html" {
-		r.URL.Path = "/default.html"
+	uPath := r.URL.Path
+	if uPath != "/" && kis3.staticBox.Has(uPath) {
+		kis3.staticFS.ServeHTTP(w, r)
+	} else {
+		sendHelloResponse(w)
 	}
-	kis3.fs.ServeHTTP(w, r)
 }
 
 func (kis3 kis3) requestStats(w http.ResponseWriter, r *http.Request) {
