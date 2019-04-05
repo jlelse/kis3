@@ -69,10 +69,7 @@ func (kis3 kis3) startListening() {
 func (kis3 kis3) trackView(w http.ResponseWriter, r *http.Request) {
 	url := r.Header.Get("Referer") // URL of requesting source
 	ref := r.URL.Query().Get("ref")
-	if r.Header.Get("DNT") == "1" && appConfig.dnt {
-		fmt.Println("Not tracking because of DNT")
-	} else {
-		fmt.Printf("Tracking %s with referrer %s\n", url, ref)
+	if !(r.Header.Get("DNT") == "1" && appConfig.dnt) {
 		go kis3.db.trackView(url, ref) // run with goroutine for awesome speed!
 		_, _ = fmt.Fprint(w, "true")
 	}

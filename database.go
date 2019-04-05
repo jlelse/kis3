@@ -6,6 +6,7 @@ import (
 	"github.com/gobuffalo/packr/v2"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rubenv/sql-migrate"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -38,11 +39,17 @@ func migrateDatabase(database *sql.DB) (e error) {
 
 // Tracking
 
-func (db *Database) trackView(url string, ref string) {
-	if len(url) == 0 {
+func (db *Database) trackView(urlString string, ref string) {
+	if len(urlString) == 0 {
+		// Don't track empty urls
 		return
 	}
-	_, e := db.sqlDB.Exec("insert into views(url, ref) values(:url, :ref)", sql.Named("url", url), sql.Named("ref", ref))
+	if ref != "" {
+		// Clean referrer and just keep the hostname for more privacy
+		parsedRef, _ := url.Parse(ref)
+		ref = parsedRef.Hostname()
+	}
+	_, e := db.sqlDB.Exec("insert into views(url, ref) values(:url, :ref)", sql.Named("url", urlString), sql.Named("ref", ref))
 	if e != nil {
 		fmt.Println("Inserting into DB failed:", e)
 	}
