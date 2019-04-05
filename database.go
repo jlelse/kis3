@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gobuffalo/packr/v2"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/mssola/user_agent"
 	"github.com/rubenv/sql-migrate"
 	"net/url"
 	"os"
@@ -39,7 +40,7 @@ func migrateDatabase(database *sql.DB) (e error) {
 
 // Tracking
 
-func (db *Database) trackView(urlString string, ref string) {
+func (db *Database) trackView(urlString string, ref string, ua string) {
 	if len(urlString) == 0 {
 		// Don't track empty urls
 		return
@@ -49,7 +50,12 @@ func (db *Database) trackView(urlString string, ref string) {
 		parsedRef, _ := url.Parse(ref)
 		ref = parsedRef.Hostname()
 	}
-	_, e := db.sqlDB.Exec("insert into views(url, ref) values(:url, :ref)", sql.Named("url", urlString), sql.Named("ref", ref))
+	if ua != "" {
+		// Parse Useragent
+		uaName, uaVersion := user_agent.New(ua).Browser()
+		ua = uaName + " " + uaVersion
+	}
+	_, e := db.sqlDB.Exec("insert into views(url, ref, useragent) values(:url, :ref, :ua)", sql.Named("url", urlString), sql.Named("ref", ref), sql.Named("ua", ua))
 	if e != nil {
 		fmt.Println("Inserting into DB failed:", e)
 	}

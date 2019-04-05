@@ -8,6 +8,7 @@ require (
 	github.com/gorilla/handlers v1.4.0
 	github.com/gorilla/mux v1.7.1
 	github.com/mattn/go-sqlite3 v1.10.0
+	github.com/mssola/user_agent v0.5.0
 	github.com/rubenv/sql-migrate v0.0.0-20190327083759-54bad0a9b051
 	github.com/wcharczuk/go-chart v2.0.1+incompatible
 	golang.org/x/image v0.0.0-20190321063152-3fc05d484e9f // indirect
