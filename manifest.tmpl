@@ -1,0 +1,19 @@
+image: kis3/kis3:latest
+manifests:
+  -
+    image: kis3/kis3:linux-amd64
+    platform:
+      architecture: amd64
+      os: linux
+  -
+    image: kis3/kis3:linux-arm64
+    platform:
+      architecture: arm64
+      os: linux
+      variant: v8
+  -
+    image: kis3/kis3:linux-arm
+    platform:
+      architecture: arm
+      os: linux
+      variant: v7

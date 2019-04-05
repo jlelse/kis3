@@ -1,0 +1,239 @@
+kind: pipeline
+name: build-master-amd64
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: publish
+    image: plugins/docker
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      repo: kis3/kis3
+      tags: linux-amd64
+    when:
+      event:
+      - push
+
+trigger:
+  ref:
+  - refs/heads/master
+
+---
+kind: pipeline
+name: build-master-arm64
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+  - name: publish
+    image: plugins/docker
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      repo: kis3/kis3
+      tags: linux-arm64
+    when:
+      event:
+      - push
+
+trigger:
+  ref:
+  - refs/heads/master
+
+---
+kind: pipeline
+name: build-master-arm
+
+platform:
+  os: linux
+  arch: arm
+
+steps:
+  - name: publish
+    image: plugins/docker
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      repo: kis3/kis3
+      tags: linux-arm
+    when:
+      event:
+        - push
+
+trigger:
+  ref:
+    - refs/heads/master
+
+---
+kind: pipeline
+name: manifest-master
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: manifest
+  pull: always
+  image: plugins/manifest
+  settings:
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+    ignore_missing: true
+    spec: manifest.tmpl
+
+trigger:
+  ref:
+  - refs/heads/master
+
+depends_on:
+- build-master-amd64
+- build-master-arm64
+- build-master-arm
+
+---
+kind: pipeline
+name: build-develop-amd64
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: publish
+    image: plugins/docker
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      repo: kis3/kis3
+      tags: develop-linux-amd64
+    when:
+      event:
+      - push
+
+trigger:
+  ref:
+  - refs/heads/develop
+
+---
+kind: pipeline
+name: build-develop-arm64
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+  - name: publish
+    image: plugins/docker
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      repo: kis3/kis3
+      tags: develop-linux-arm64
+    when:
+      event:
+      - push
+
+trigger:
+  ref:
+  - refs/heads/develop
+
+---
+kind: pipeline
+name: build-develop-arm
+
+platform:
+  os: linux
+  arch: arm
+
+steps:
+  - name: publish
+    image: plugins/docker
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      repo: kis3/kis3
+      tags: develop-linux-arm
+    when:
+      event:
+        - push
+
+trigger:
+  ref:
+    - refs/heads/develop
+
+---
+kind: pipeline
+name: manifest-develop
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: manifest
+  pull: always
+  image: plugins/manifest
+  settings:
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+    ignore_missing: true
+    spec: manifest-develop.tmpl
+
+trigger:
+  ref:
+  - refs/heads/develop
+
+depends_on:
+- build-develop-amd64
+- build-develop-arm64
+- build-develop-arm
+
+---
+kind: pipeline
+name: build-pull-request
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: dryrun
+    image: plugins/docker
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      repo: kis3/kis3
+      tags: pr-linux-amd64
+      dry_run: true
+    when:
+      event:
+      - pull_request
+
+trigger:
+  ref:
+  - "refs/pull/**"
