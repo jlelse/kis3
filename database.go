@@ -4,10 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/gobuffalo/packr/v2"
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	_ "github.com/mattn/go-sqlite3"
-	"kis3.dev/kis3/helpers"
+	"github.com/rubenv/sql-migrate"
 	"os"
 	"path/filepath"
 	"strings"
@@ -31,24 +29,10 @@ func initDatabase() (database *Database, e error) {
 }
 
 func migrateDatabase(database *sql.DB) (e error) {
-	sourceDriver, e := (&helpers.PackrSource{
+	migrations := &migrate.PackrMigrationSource{
 		Box: packr.New("migrations", "migrations"),
-	}).Open("")
-	if e != nil {
-		return
 	}
-	databaseDriver, e := sqlite3.WithInstance(database, &sqlite3.Config{})
-	if e != nil {
-		return
-	}
-	m, e := migrate.NewWithInstance("packr", sourceDriver, "kis3", databaseDriver)
-	if e != nil {
-		return
-	}
-	e = m.Up()
-	if e == migrate.ErrNoChange {
-		e = nil
-	}
+	_, e = migrate.Exec(database, "sqlite3", migrations, migrate.Up)
 	return
 }
 
