@@ -3,7 +3,7 @@ module kis3.dev/kis3
 go 1.12
 
 require (
-	github.com/gobuffalo/packr/v2 v2.0.9
+	github.com/gobuffalo/packr/v2 v2.1.0
 	github.com/golang-migrate/migrate/v4 v4.2.5
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/gorilla/handlers v1.4.0
