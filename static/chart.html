@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>KISSS</title>
+    <script src="Chart.min.js"></script>
+    <style>
+        canvas {
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+    </style>
+</head>
+<body>
+<div id="container" style="width: 100%;">
+    <canvas id="canvas"></canvas>
+</div>
+<script>
+    window.onload = function () {
+        window.myBar = new Chart(document.getElementById('canvas').getContext('2d'), {
+            type: 'horizontalBar',
+            data: {
+                labels: {{ .Labels }},
+                datasets: [{
+                    backgroundColor: 'rgba(30,144,255, 0.5)',
+                    borderColor: 'rgba(30,144,255)',
+                    data: {{ .Values }}
+                }]
+            },
+            options: {
+                responsive: true,
+                legend: {
+                    display: false
+                }
+            }
+        });
+
+    };
+</script>
+</body>
+</html>

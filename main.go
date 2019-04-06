@@ -6,11 +6,9 @@ import (
 	"github.com/gobuffalo/packr/v2"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/wcharczuk/go-chart"
-	"github.com/wcharczuk/go-chart/drawing"
+	"html/template"
 	"kis3.dev/kis3/helpers"
 	"log"
-	"math"
 	"net/http"
 	"strconv"
 )
@@ -27,51 +25,53 @@ var (
 )
 
 func init() {
-	e := app.setupDB()
+	e := setupDB()
 	if e != nil {
 		log.Fatal("Database setup failed:", e)
 	}
-	app.setupRouter()
+	setupRouter()
+	app.staticBox = packr.New("staticFiles", "./static")
+	app.staticFS = http.FileServer(app.staticBox)
 }
 
 func main() {
-	app.startListening()
+	startListening()
 }
 
-func (kis3 *kis3) setupDB() (e error) {
-	kis3.db, e = initDatabase()
+func setupDB() (e error) {
+	app.db, e = initDatabase()
 	return
 }
 
-func (kis3 *kis3) setupRouter() {
-	kis3.router = mux.NewRouter()
+func setupRouter() {
+	app.router = mux.NewRouter()
 
 	corsHandler := handlers.CORS(handlers.AllowedOrigins([]string{"*"}))
 
-	viewRouter := kis3.router.PathPrefix("/view").Subrouter()
+	viewRouter := app.router.PathPrefix("/view").Subrouter()
 	viewRouter.Use(corsHandler)
-	viewRouter.Path("").HandlerFunc(kis3.trackView)
+	viewRouter.Path("").HandlerFunc(trackView)
 
-	kis3.router.HandleFunc("/stats", kis3.requestStats)
+	app.router.HandleFunc("/stats", requestStats)
 
-	staticRouter := kis3.router.PathPrefix("").Subrouter()
+	staticRouter := app.router.PathPrefix("").Subrouter()
 	staticRouter.Use(corsHandler)
-	staticRouter.PathPrefix("").Handler(http.HandlerFunc(kis3.serveStaticFile))
+	staticRouter.PathPrefix("").Handler(http.HandlerFunc(serveStaticFile))
 }
 
-func (kis3 kis3) startListening() {
+func startListening() {
 	port := appConfig.port
 	addr := ":" + port
 	fmt.Printf("Listening to %s\n", addr)
-	log.Fatal(http.ListenAndServe(addr, kis3.router))
+	log.Fatal(http.ListenAndServe(addr, app.router))
 }
 
-func (kis3 kis3) trackView(w http.ResponseWriter, r *http.Request) {
+func trackView(w http.ResponseWriter, r *http.Request) {
 	url := r.Header.Get("Referer") // URL of requesting source
 	ref := r.URL.Query().Get("ref")
 	ua := r.Header.Get("User-Agent")
 	if !(r.Header.Get("DNT") == "1" && appConfig.dnt) {
-		go kis3.db.trackView(url, ref, ua) // run with goroutine for awesome speed!
+		go app.db.trackView(url, ref, ua) // run with goroutine for awesome speed!
 		_, _ = fmt.Fprint(w, "true")
 	}
 }
@@ -80,20 +80,16 @@ func sendHelloResponse(w http.ResponseWriter) {
 	_, _ = fmt.Fprint(w, "Hello from KISSS")
 }
 
-func (kis3 kis3) serveStaticFile(w http.ResponseWriter, r *http.Request) {
-	if kis3.staticBox == nil || kis3.staticFS == nil {
-		kis3.staticBox = packr.New("staticFiles", "./static")
-		kis3.staticFS = http.FileServer(kis3.staticBox)
-	}
+func serveStaticFile(w http.ResponseWriter, r *http.Request) {
 	uPath := r.URL.Path
-	if uPath != "/" && kis3.staticBox.Has(uPath) {
-		kis3.staticFS.ServeHTTP(w, r)
+	if uPath != "/" && app.staticBox.Has(uPath) {
+		app.staticFS.ServeHTTP(w, r)
 	} else {
 		sendHelloResponse(w)
 	}
 }
 
-func (kis3 kis3) requestStats(w http.ResponseWriter, r *http.Request) {
+func requestStats(w http.ResponseWriter, r *http.Request) {
 	// Require authentication
 	if appConfig.statsAuth {
 		if !helpers.CheckAuth(w, r, appConfig.statsUsername, appConfig.statsPassword) {
@@ -117,7 +113,7 @@ func (kis3 kis3) requestStats(w http.ResponseWriter, r *http.Request) {
 	case "months":
 		view = MONTHS
 	}
-	result, e := kis3.db.request(&ViewsRequest{
+	result, e := app.db.request(&ViewsRequest{
 		view:   view,
 		from:   queries.Get("from"),
 		to:     queries.Get("to"),
@@ -157,45 +153,26 @@ func sendJsonResponse(result []*RequestResultRow, w http.ResponseWriter) {
 }
 
 func sendChartResponse(result []*RequestResultRow, w http.ResponseWriter) {
-	var values []chart.Value
-	max := float64(1)
-	for _, row := range result {
-		values = append(values, chart.Value{Label: row.First, Value: float64(row.Second), Style: chart.Style{
-			FillColor:   drawing.ColorBlue,
-			StrokeColor: drawing.ColorBlue,
-		}})
-		max = math.Max(max, float64(row.Second))
+	labels := make([]string, len(result))
+	values := make([]int, len(result))
+	for i, row := range result {
+		labels[i] = row.First
+		values[i] = row.Second
 	}
-	chartRange := &chart.ContinuousRange{
-		Min: float64(0),
-		Max: max,
+	data := struct {
+		Labels []string
+		Values []int
+	}{
+		Labels: labels,
+		Values: values,
 	}
-	chartWidth := len(values)*30 + 100
-	barChart := chart.BarChart{
-		Title:      "Stats",
-		Height:     500,
-		Width:      chartWidth,
-		TitleStyle: chart.StyleShow(),
-		Background: chart.Style{
-			Padding: chart.Box{
-				Top: 40,
-			},
-		},
-		BarWidth:   20,
-		BarSpacing: 10,
-		XAxis: chart.Style{
-			Show:                true,
-			TextRotationDegrees: 90.0,
-		},
-		YAxis: chart.YAxis{
-			Style: chart.StyleShow(),
-			Range: chartRange,
-		},
-		Bars: values,
-	}
-	w.Header().Set("Content-Type", chart.ContentTypeSVG)
-	e := barChart.Render(chart.SVG, w)
+	chartTemplateString, e := app.staticBox.FindString("chart.html")
 	if e != nil {
-		sendPlainResponse(result, w) // Fallback to plain
+		return
 	}
+	t, e := template.New("chart").Parse(chartTemplateString)
+	if e != nil {
+		return
+	}
+	_ = t.Execute(w, data)
 }
