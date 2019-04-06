@@ -9,6 +9,7 @@ COPY --from=packr /go/bin/packr2 /go/bin
 ADD . /app
 WORKDIR /app
 RUN GO111MODULE=on packr2
+RUN go test
 RUN go build kis3.dev/kis3
 
 FROM alpine:3.9
