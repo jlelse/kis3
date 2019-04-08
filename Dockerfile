@@ -14,11 +14,11 @@ RUN go build kis3.dev/kis3
 
 FROM alpine:3.9
 RUN adduser -S -D -H -h /app kis3
-COPY --from=build /app/kis3 /app/
-RUN chown -R kis3 /app
+COPY --from=build /app/kis3 /bin/
+RUN mkdir /app && chown -R kis3 /app
 USER kis3
 WORKDIR /app
 RUN mkdir data
 VOLUME ["/app/data"]
 EXPOSE 8080
-CMD ["./kis3"]
+CMD ["kis3"]
