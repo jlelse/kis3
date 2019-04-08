@@ -75,12 +75,11 @@ const (
 )
 
 type ViewsRequest struct {
-	view   View
-	from   string
-	to     string
-	url    string
-	domain string
-	ref    string
+	view View
+	from string
+	to   string
+	url  string
+	ref  string
 }
 
 type RequestResultRow struct {
@@ -157,7 +156,6 @@ func (request *ViewsRequest) buildFilter() (filters string, parameters []sql.Nam
 	for _, filter := range []string{
 		request.buildDateTimeFilter(&parameters),
 		request.buildUrlFilter(&parameters),
-		request.buildDomainFilter(&parameters),
 		request.buildRefFilter(&parameters),
 	} {
 		if len(filter) > 0 {
@@ -187,16 +185,8 @@ func (request *ViewsRequest) buildDateTimeFilter(namedArg *[]sql.NamedArg) (date
 
 func (request *ViewsRequest) buildUrlFilter(namedArg *[]sql.NamedArg) (urlFilter string) {
 	if len(request.url) > 0 {
-		*namedArg = append(*namedArg, sql.Named("url", request.url))
-		urlFilter = "url = :url"
-	}
-	return
-}
-
-func (request *ViewsRequest) buildDomainFilter(namedArg *[]sql.NamedArg) (domainFilter string) {
-	if len(request.domain) > 0 {
-		*namedArg = append(*namedArg, sql.Named("domain", request.domain+"%"))
-		domainFilter = "url like :domain"
+		*namedArg = append(*namedArg, sql.Named("url", "%"+request.url+"%"))
+		urlFilter = "url like :url"
 	}
 	return
 }

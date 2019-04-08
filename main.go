@@ -114,7 +114,6 @@ func requestStats(w http.ResponseWriter, r *http.Request) {
 		from:   queries.Get("from"),
 		to:     queries.Get("to"),
 		url:    queries.Get("url"),
-		domain: queries.Get("domain"),
 		ref:    queries.Get("ref"),
 	})
 	if e != nil {
