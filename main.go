@@ -66,6 +66,7 @@ func startListening() {
 }
 
 func trackView(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "max-age=0")
 	url := r.Header.Get("Referer") // URL of requesting source
 	ref := r.URL.Query().Get("ref")
 	ua := r.Header.Get("User-Agent")
@@ -79,10 +80,20 @@ func sendHelloResponse(w http.ResponseWriter, _ *http.Request) {
 	_, _ = fmt.Fprint(w, "Hello from KISSS")
 }
 
-func serveTrackingScript(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Add("Content-Type", "application/javascript")
-	trackingScriptBytes, _ := app.staticBox.Find("kis3.js")
-	_, _ = w.Write(trackingScriptBytes)
+func serveTrackingScript(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/javascript")
+	w.Header().Set("Cache-Control", "max-age=432000") // 5 days
+	filename := "kis3.js"
+	file, err := app.staticBox.Open(filename)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+	stat, err := file.Stat()
+	if err != nil {
+		return
+	}
+	http.ServeContent(w, r, filename, stat.ModTime(), file)
 }
 
 func requestStats(w http.ResponseWriter, r *http.Request) {
@@ -123,6 +134,7 @@ func requestStats(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Database request failed:", e)
 		w.WriteHeader(500)
 	} else if result != nil {
+		w.Header().Set("Cache-Control", "max-age=0")
 		switch queries.Get("format") {
 		case "json":
 			sendJsonResponse(result, w)
@@ -138,14 +150,14 @@ func requestStats(w http.ResponseWriter, r *http.Request) {
 }
 
 func sendPlainResponse(result []*RequestResultRow, w http.ResponseWriter) {
-	w.Header().Add("Content-Type", "text/plain")
+	w.Header().Set("Content-Type", "text/plain")
 	for _, row := range result {
 		_, _ = fmt.Fprintln(w, (*row).First+": "+strconv.Itoa((*row).Second))
 	}
 }
 
 func sendJsonResponse(result []*RequestResultRow, w http.ResponseWriter) {
-	w.Header().Add("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	jsonBytes, _ := json.Marshal(result)
 	_, _ = fmt.Fprintln(w, string(jsonBytes))
 }
