@@ -196,9 +196,9 @@ func (request *ViewsRequest) buildUrlFilter(namedArg *[]sql.NamedArg) (urlFilter
 }
 
 func (request *ViewsRequest) buildRefFilter(namedArg *[]sql.NamedArg) (refFilter string) {
-	if len(request.url) > 0 {
-		*namedArg = append(*namedArg, sql.Named("ref", request.ref))
-		refFilter = "ref = :ref"
+	if len(request.ref) > 0 {
+		*namedArg = append(*namedArg, sql.Named("ref", "%"+request.ref+"%"))
+		refFilter = "ref like :ref"
 	}
 	return
 }
