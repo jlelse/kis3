@@ -68,6 +68,7 @@ type View int
 const (
 	PAGES View = iota + 1
 	REFERRERS
+	USERAGENTS
 	HOURS
 	DAYS
 	WEEKS
@@ -130,6 +131,9 @@ func (request *ViewsRequest) buildStatement(filters string) (statement string) {
 		return
 	case REFERRERS:
 		statement = "SELECT ref as first, count(*) as second from views" + filters + "group by ref;"
+		return
+	case USERAGENTS:
+		statement = "SELECT useragent as first, count(*) as second from views" + filters + "group by useragent;"
 		return
 	case HOURS, DAYS, WEEKS, MONTHS:
 		format := ""

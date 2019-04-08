@@ -100,6 +100,8 @@ func requestStats(w http.ResponseWriter, r *http.Request) {
 		view = PAGES
 	case "referrers":
 		view = REFERRERS
+	case "useragents":
+		view = USERAGENTS
 	case "hours":
 		view = HOURS
 	case "days":
@@ -110,11 +112,11 @@ func requestStats(w http.ResponseWriter, r *http.Request) {
 		view = MONTHS
 	}
 	result, e := app.db.request(&ViewsRequest{
-		view:   view,
-		from:   queries.Get("from"),
-		to:     queries.Get("to"),
-		url:    queries.Get("url"),
-		ref:    queries.Get("ref"),
+		view: view,
+		from: queries.Get("from"),
+		to:   queries.Get("to"),
+		url:  queries.Get("url"),
+		ref:  queries.Get("ref"),
 	})
 	if e != nil {
 		fmt.Println("Database request failed:", e)
