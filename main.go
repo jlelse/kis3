@@ -117,6 +117,7 @@ func requestStats(w http.ResponseWriter, r *http.Request) {
 		to:   queries.Get("to"),
 		url:  queries.Get("url"),
 		ref:  queries.Get("ref"),
+		ua:   queries.Get("ua"),
 	})
 	if e != nil {
 		fmt.Println("Database request failed:", e)

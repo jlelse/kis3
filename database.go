@@ -81,6 +81,7 @@ type ViewsRequest struct {
 	to   string
 	url  string
 	ref  string
+	ua   string
 }
 
 type RequestResultRow struct {
@@ -161,6 +162,7 @@ func (request *ViewsRequest) buildFilter() (filters string, parameters []sql.Nam
 		request.buildDateTimeFilter(&parameters),
 		request.buildUrlFilter(&parameters),
 		request.buildRefFilter(&parameters),
+		request.buildUseragentFilter(&parameters),
 	} {
 		if len(filter) > 0 {
 			allFilters = append(allFilters, filter)
@@ -199,6 +201,14 @@ func (request *ViewsRequest) buildRefFilter(namedArg *[]sql.NamedArg) (refFilter
 	if len(request.ref) > 0 {
 		*namedArg = append(*namedArg, sql.Named("ref", "%"+request.ref+"%"))
 		refFilter = "ref like :ref"
+	}
+	return
+}
+
+func (request *ViewsRequest) buildUseragentFilter(namedArg *[]sql.NamedArg) (refFilter string) {
+	if len(request.ua) > 0 {
+		*namedArg = append(*namedArg, sql.Named("ua", "%"+request.ua+"%"))
+		refFilter = "useragent like :ua"
 	}
 	return
 }
