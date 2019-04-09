@@ -67,7 +67,7 @@ func startListening() {
 
 func trackView(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "max-age=0")
-	url := r.Header.Get("Referer") // URL of requesting source
+	url := r.URL.Query().Get("url")
 	ref := r.URL.Query().Get("ref")
 	ua := r.Header.Get("User-Agent")
 	if !(r.Header.Get("DNT") == "1" && appConfig.dnt) {
