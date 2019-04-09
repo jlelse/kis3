@@ -112,6 +112,9 @@ func (db *Database) request(request *ViewsRequest) (resultRows []*RequestResultR
 				_ = rows.Close()
 				return
 			}
+			if first == "" {
+				first = "Undefined"
+			}
 			resultRows = append(resultRows, &RequestResultRow{
 				First:  first,
 				Second: second,
