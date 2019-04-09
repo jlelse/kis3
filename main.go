@@ -113,6 +113,8 @@ func requestStats(w http.ResponseWriter, r *http.Request) {
 		view = REFERRERS
 	case "useragents":
 		view = USERAGENTS
+	case "useragentnames":
+		view = USERAGENTNAMES
 	case "hours":
 		view = HOURS
 	case "days":
