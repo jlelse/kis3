@@ -125,12 +125,14 @@ func requestStats(w http.ResponseWriter, r *http.Request) {
 		view = MONTHS
 	}
 	result, e := app.db.request(&ViewsRequest{
-		view: view,
-		from: queries.Get("from"),
-		to:   queries.Get("to"),
-		url:  queries.Get("url"),
-		ref:  queries.Get("ref"),
-		ua:   queries.Get("ua"),
+		view:     view,
+		from:     queries.Get("from"),
+		to:       queries.Get("to"),
+		url:      queries.Get("url"),
+		ref:      queries.Get("ref"),
+		ua:       queries.Get("ua"),
+		orderrow: queries.Get("orderrow"),
+		order:    queries.Get("order"),
 	})
 	if e != nil {
 		fmt.Println("Database request failed:", e)

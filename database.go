@@ -77,12 +77,14 @@ const (
 )
 
 type ViewsRequest struct {
-	view View
-	from string
-	to   string
-	url  string
-	ref  string
-	ua   string
+	view     View
+	from     string
+	to       string
+	url      string
+	ref      string
+	ua       string
+	orderrow string
+	order    string
 }
 
 type RequestResultRow struct {
@@ -91,14 +93,11 @@ type RequestResultRow struct {
 }
 
 func (db *Database) request(request *ViewsRequest) (resultRows []*RequestResultRow, e error) {
-	filterString, parameters := request.buildFilter()
-	// Fix to use array as varargs
+	statement, parameters := request.buildStatement()
 	namedArgs := make([]interface{}, len(parameters))
 	for i, v := range parameters {
 		namedArgs[i] = v
 	}
-	// Query
-	statement := request.buildStatement(filterString)
 	rows, e := db.sqlDB.Query(statement, namedArgs...)
 	if e != nil {
 		return
@@ -124,24 +123,34 @@ func (db *Database) request(request *ViewsRequest) (resultRows []*RequestResultR
 	}
 }
 
-func (request *ViewsRequest) buildStatement(filters string) (statement string) {
+func (request *ViewsRequest) buildStatement() (statement string, parameters []sql.NamedArg) {
+	filters, parameters := request.buildFilter()
 	if len(filters) > 0 {
 		filters = " where " + filters + " "
 	} else {
 		filters = " "
 	}
+	orderrow := "first"
+	order := "ASC"
+	if strings.ToLower(request.orderrow) == "second" {
+		orderrow = "second"
+	}
+	if strings.ToUpper(request.order) == "DESC" {
+		order = "DESC"
+	}
+	orderstatement := " ORDER BY " + orderrow + " " + order
 	switch request.view {
 	case PAGES:
-		statement = "SELECT url as first, count(*) as second from views" + filters + "group by url;"
+		statement = "SELECT url as first, count(*) as second from views" + filters + "group by first" + orderstatement + ";"
 		return
 	case REFERRERS:
-		statement = "SELECT ref as first, count(*) as second from views" + filters + "group by ref;"
+		statement = "SELECT ref as first, count(*) as second from views" + filters + "group by first" + orderstatement + ";"
 		return
 	case USERAGENTS:
-		statement = "SELECT useragent as first, count(*) as second from views" + filters + "group by useragent;"
+		statement = "SELECT useragent as first, count(*) as second from views" + filters + "group by first" + orderstatement + ";"
 		return
 	case USERAGENTNAMES:
-		statement = "SELECT substr(useragent, 1, pos-1) as first, COUNT(*) from (SELECT *, instr(useragent,' ') AS pos FROM views)" + filters + "group by first;"
+		statement = "SELECT substr(useragent, 1, pos-1) as first, COUNT(*) as second from (SELECT *, instr(useragent,' ') AS pos FROM views)" + filters + "group by first" + orderstatement + ";"
 		return
 	case HOURS, DAYS, WEEKS, MONTHS:
 		format := ""
@@ -155,7 +164,7 @@ func (request *ViewsRequest) buildStatement(filters string) (statement string) {
 		case MONTHS:
 			format = "%Y-%m"
 		}
-		statement = "SELECT strftime('" + format + "', time, 'localtime') as first, count(*) as second from views" + filters + "group by first;"
+		statement = "SELECT strftime('" + format + "', time, 'localtime') as first, count(*) as second from views" + filters + "group by first" + orderstatement + ";"
 	}
 	return
 }
