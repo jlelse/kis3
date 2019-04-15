@@ -124,6 +124,10 @@ func requestStats(w http.ResponseWriter, r *http.Request) {
 		view = WEEKS
 	case "months":
 		view = MONTHS
+	case "allhours":
+		view = ALLHOURS
+	case "alldays":
+		view = ALLDAYS
 	}
 	result, e := app.db.request(&ViewsRequest{
 		view:     view,

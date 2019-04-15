@@ -74,6 +74,8 @@ const (
 	DAYS
 	WEEKS
 	MONTHS
+	ALLHOURS
+	ALLDAYS
 )
 
 type ViewsRequest struct {
@@ -152,6 +154,10 @@ func (request *ViewsRequest) buildStatement() (statement string, parameters []sq
 	case USERAGENTNAMES:
 		statement = "SELECT substr(useragent, 1, pos-1) as first, COUNT(*) as second from (SELECT *, instr(useragent,' ') AS pos FROM views)" + filters + "group by first" + orderstatement + ";"
 		return
+	case ALLHOURS:
+		statement = "WITH RECURSIVE hours(hour) AS ( VALUES (datetime((SELECT min(time) from views), 'localtime', 'start of day')) UNION ALL SELECT datetime(hour, '+1 hour') FROM hours WHERE hour <= date((SELECT max(time) from views), '+1 day') ) SELECT strftime('%Y-%m-%d %H', hours.hour) as first, COUNT(views.time) as second FROM hours LEFT OUTER JOIN views ON strftime('%Y-%m-%d %H', hours.hour) = strftime('%Y-%m-%d %H', time, 'localtime')" + filters + "GROUP BY first" + orderstatement + ";"
+	case ALLDAYS:
+		statement = "WITH RECURSIVE days(day) AS ( VALUES (datetime((SELECT min(time) from views), 'localtime', 'start of day')) UNION ALL SELECT datetime(day, '+1 day') FROM days WHERE day <= date((SELECT max(time) from views), '+1 day') ) SELECT strftime('%Y-%m-%d', days.day) as first, COUNT(views.time) as second FROM days LEFT OUTER JOIN views ON strftime('%Y-%m-%d', days.day) = strftime('%Y-%m-%d', time, 'localtime')" + filters + "GROUP BY first" + orderstatement + ";"
 	case HOURS, DAYS, WEEKS, MONTHS:
 		format := ""
 		switch request.view {
@@ -189,18 +195,23 @@ func (request *ViewsRequest) buildFilter() (filters string, parameters []sql.Nam
 }
 
 func (request *ViewsRequest) buildDateTimeFilter(namedArg *[]sql.NamedArg) (dateTimeFilter string) {
+	selector := ""
+	switch request.view {
+	case ALLHOURS, ALLDAYS:
+		selector = "first"
+	default:
+		selector = "datetime(time, 'localtime')"
+	}
 	if len(request.from) > 0 && len(request.to) > 0 {
 		*namedArg = append(*namedArg, sql.Named("from", request.from))
 		*namedArg = append(*namedArg, sql.Named("to", request.to))
-		dateTimeFilter = "datetime(time, 'localtime') between :from and :to"
-		return
+		dateTimeFilter = selector + " between :from and :to"
 	} else if len(request.from) > 0 {
 		*namedArg = append(*namedArg, sql.Named("from", request.from))
-		dateTimeFilter = "datetime(time, 'localtime') >= :from"
-		return
+		dateTimeFilter = selector + " >= :from"
 	} else if len(request.to) > 0 {
 		*namedArg = append(*namedArg, sql.Named("to", request.to))
-		dateTimeFilter = "datetime(time, 'localtime') <= :to"
+		dateTimeFilter = selector + " <= :to"
 	}
 	return
 }
