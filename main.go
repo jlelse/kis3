@@ -147,13 +147,10 @@ func requestStats(w http.ResponseWriter, r *http.Request) {
 		switch queries.Get("format") {
 		case "json":
 			sendJsonResponse(result, w)
-			return
 		case "chart":
 			sendChartResponse(result, w)
-			return
 		default: // "plain"
 			sendPlainResponse(result, w)
-			return
 		}
 	}
 }

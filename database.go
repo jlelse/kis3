@@ -144,16 +144,12 @@ func (request *ViewsRequest) buildStatement() (statement string, parameters []sq
 	switch request.view {
 	case PAGES:
 		statement = "SELECT url as first, count(*) as second from views" + filters + "group by first" + orderstatement + ";"
-		return
 	case REFERRERS:
 		statement = "SELECT ref as first, count(*) as second from views" + filters + "group by first" + orderstatement + ";"
-		return
 	case USERAGENTS:
 		statement = "SELECT useragent as first, count(*) as second from views" + filters + "group by first" + orderstatement + ";"
-		return
 	case USERAGENTNAMES:
 		statement = "SELECT substr(useragent, 1, pos-1) as first, COUNT(*) as second from (SELECT *, instr(useragent,' ') AS pos FROM views)" + filters + "group by first" + orderstatement + ";"
-		return
 	case ALLHOURS:
 		statement = "WITH RECURSIVE hours(hour) AS ( VALUES (datetime((SELECT min(time) from views), 'localtime', 'start of day')) UNION ALL SELECT datetime(hour, '+1 hour') FROM hours WHERE hour <= date((SELECT max(time) from views), '+1 day') ) SELECT strftime('%Y-%m-%d %H', hours.hour) as first, COUNT(views.time) as second FROM hours LEFT OUTER JOIN views ON strftime('%Y-%m-%d %H', hours.hour) = strftime('%Y-%m-%d %H', time, 'localtime')" + filters + "GROUP BY first" + orderstatement + ";"
 	case ALLDAYS:
