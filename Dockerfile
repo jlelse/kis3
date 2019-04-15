@@ -1,5 +1,5 @@
 FROM golang:1.12-alpine as build-base
-RUN apk add --no-cache git gcc musl-dev
+RUN apk add --no-cache git gcc musl-dev tzdata
 
 FROM build-base as packr
 RUN go get github.com/gobuffalo/packr/v2/packr2
@@ -13,6 +13,7 @@ RUN go test
 RUN go build kis3.dev/kis3
 
 FROM alpine:3.9
+RUN apk add --no-cache tzdata
 RUN adduser -S -D -H -h /app kis3
 COPY --from=build /app/kis3 /bin/
 RUN mkdir /app && chown -R kis3 /app
