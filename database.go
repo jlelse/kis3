@@ -132,10 +132,10 @@ func (request *ViewsRequest) buildStatement() (statement string, parameters []sq
 	}
 	orderrow := "first"
 	order := "ASC"
-	if strings.ToLower(request.orderrow) == "second" {
+	if request.orderrow == "second" {
 		orderrow = "second"
 	}
-	if strings.ToUpper(request.order) == "DESC" {
+	if request.order == "DESC" {
 		order = "DESC"
 	}
 	orderstatement := " ORDER BY " + orderrow + " " + order

@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type kis3 struct {
@@ -106,7 +107,7 @@ func requestStats(w http.ResponseWriter, r *http.Request) {
 	// Do request
 	queries := r.URL.Query()
 	view := PAGES
-	switch queries.Get("view") {
+	switch strings.ToLower(queries.Get("view")) {
 	case "pages":
 		view = PAGES
 	case "referrers":
@@ -131,8 +132,8 @@ func requestStats(w http.ResponseWriter, r *http.Request) {
 		url:      queries.Get("url"),
 		ref:      queries.Get("ref"),
 		ua:       queries.Get("ua"),
-		orderrow: queries.Get("orderrow"),
-		order:    queries.Get("order"),
+		orderrow: strings.ToLower(queries.Get("orderrow")),
+		order:    strings.ToUpper(queries.Get("order")),
 	})
 	if e != nil {
 		fmt.Println("Database request failed:", e)
