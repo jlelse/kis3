@@ -1,11 +1,11 @@
-FROM golang:1.12-alpine as build-base
-RUN apk add --no-cache git gcc musl-dev tzdata
+FROM alpine:edge as build-base
+RUN apk add --no-cache go git gcc musl-dev tzdata
 
 FROM build-base as packr
 RUN go get github.com/gobuffalo/packr/v2/packr2
 
 FROM build-base as build
-COPY --from=packr /go/bin/packr2 /go/bin
+COPY --from=packr /root/go/bin/packr2 /bin/
 ADD . /app
 WORKDIR /app
 RUN GO111MODULE=on packr2
