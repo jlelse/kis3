@@ -55,3 +55,7 @@ The following filters are available:
 `order`: select whether to use ascending order (`ASC`) or descending order (`DESC`)
 
 `format`: the format to represent the data, default is `plain` for a simple plain text list, `json` for a JSON response or `chart` for a chart generated with ChartJS in the browser
+
+## License
+
+KISSS is licensed under the MIT license, so you can do basically everything with it, but nevertheless, please contribute your improvements to make KISSS better for everyone. See the LICENSE.txt file.
