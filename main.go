@@ -56,7 +56,7 @@ func setupRouter() {
 	staticRouter := app.router.PathPrefix("").Subrouter()
 	staticRouter.Use(corsHandler)
 	staticRouter.HandleFunc("/kis3.js", serveTrackingScript)
-	staticRouter.PathPrefix("").Handler(http.HandlerFunc(sendHelloResponse))
+	staticRouter.PathPrefix("").Handler(http.HandlerFunc(HelloResponseHandler))
 }
 
 func startListening() {
@@ -77,7 +77,7 @@ func trackView(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func sendHelloResponse(w http.ResponseWriter, _ *http.Request) {
+func HelloResponseHandler(w http.ResponseWriter, _ *http.Request) {
 	_, _ = fmt.Fprint(w, "Hello from KISSS")
 }
 
