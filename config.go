@@ -1,68 +1,47 @@
 package main
 
 import (
-	"os"
-	"strconv"
+	"encoding/json"
+	"flag"
+	"io/ioutil"
 )
 
 type config struct {
-	port          string
-	dnt           bool
-	dbPath        string
-	statsAuth     bool
-	statsUsername string
-	statsPassword string
+	Port          string `json:"port"`
+	Dnt           bool   `json:"dnt"`
+	DbPath        string `json:"dbPath"`
+	StatsUsername string `json:"statsUsername"`
+	StatsPassword string `json:"statsPassword"`
 }
 
 var (
-	appConfig = &config{}
+	appConfig = &config{
+		Port:          "8080",
+		Dnt:           true,
+		DbPath:        "data/kis3.db",
+		StatsUsername: "",
+		StatsPassword: "",
+	}
 )
 
 func init() {
-	appConfig.port = port()
-	appConfig.dnt = dnt()
-	appConfig.dbPath = dbPath()
-	appConfig.statsUsername = statsUsername()
-	appConfig.statsPassword = statsPassword()
-	appConfig.statsAuth = statsAuth(appConfig)
+	parseConfigFile(appConfig)
 }
 
-func port() string {
-	port := os.Getenv("PORT")
-	if len(port) != 0 {
-		return port
-	} else {
-		return "8080"
-	}
-}
-
-func dnt() bool {
-	dnt := os.Getenv("DNT")
-	dntBool, e := strconv.ParseBool(dnt)
+func parseConfigFile(appConfig *config) {
+	configFile := flag.String("c", "config.json", "Config file")
+	flag.Parse()
+	configJson, e := ioutil.ReadFile(*configFile)
 	if e != nil {
-		dntBool = true
+		return
 	}
-	return dntBool
-}
-
-func dbPath() (dbPath string) {
-	dbPath = os.Getenv("DB_PATH")
-	if len(dbPath) == 0 {
-		dbPath = "data/kis3.db"
+	e = json.Unmarshal([]byte(configJson), appConfig)
+	if e != nil {
+		return
 	}
 	return
 }
 
-func statsUsername() (username string) {
-	username = os.Getenv("STATS_USERNAME")
-	return
-}
-
-func statsPassword() (password string) {
-	password = os.Getenv("STATS_PASSWORD")
-	return
-}
-
-func statsAuth(ac *config) bool {
-	return len(ac.statsUsername) > 0 && len(ac.statsPassword) > 0
+func (ac *config) statsAuth() bool {
+	return len(ac.StatsUsername) > 0 && len(ac.StatsPassword) > 0
 }

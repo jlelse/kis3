@@ -60,7 +60,7 @@ func setupRouter() {
 }
 
 func startListening() {
-	port := appConfig.port
+	port := appConfig.Port
 	addr := ":" + port
 	fmt.Printf("Listening to %s\n", addr)
 	log.Fatal(http.ListenAndServe(addr, app.router))
@@ -71,7 +71,7 @@ func trackView(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
 	ref := r.URL.Query().Get("ref")
 	ua := r.Header.Get("User-Agent")
-	if !(r.Header.Get("DNT") == "1" && appConfig.dnt) {
+	if !(r.Header.Get("DNT") == "1" && appConfig.Dnt) {
 		go app.db.trackView(url, ref, ua) // run with goroutine for awesome speed!
 		_, _ = fmt.Fprint(w, "true")
 	}
@@ -99,8 +99,8 @@ func serveTrackingScript(w http.ResponseWriter, r *http.Request) {
 
 func requestStats(w http.ResponseWriter, r *http.Request) {
 	// Require authentication
-	if appConfig.statsAuth {
-		if !helpers.CheckAuth(w, r, appConfig.statsUsername, appConfig.statsPassword) {
+	if appConfig.statsAuth() {
+		if !helpers.CheckAuth(w, r, appConfig.StatsUsername, appConfig.StatsPassword) {
 			return
 		}
 	}
