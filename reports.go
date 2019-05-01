@@ -13,8 +13,9 @@ import (
 func setupReports() {
 	scheduler := clockwork.NewScheduler()
 	for _, r := range appConfig.Reports {
-		scheduler.Schedule().Every().Day().At(r.Time).Do(func() {
-			executeReport(&r)
+		scheduledReport := r
+		scheduler.Schedule().Every().Day().At(scheduledReport.Time).Do(func() {
+			executeReport(&scheduledReport)
 		})
 	}
 	go scheduler.Run()
