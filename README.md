@@ -6,27 +6,41 @@
 
 KISSS is really easy to install via Docker.
 
-    docker run -d --name kis3 -e ENVVAR=VARVALUE -e ... -p 8080:8080 -v kis3:/app/data kis3/kis3
-
-Replace ENVVAR and VARVALUE with the environment variables from the configuration.
+    docker run -d --name kis3 -p 8080:8080 -v kis3:/app/data -v ${pwd}/config.json:/app/config.json kis3/kis3
 
 Depending on your setup, replace `-p 8080:8080` with your custom port configuration. KISSS listens to port 8080 by default, but you can also change this via the configuration.
 
 To persist the data KISSS collects, you should mount a volume or a folder to `/app/data`. When mounting an folder, give writing permissions to UID 100, because it is a non-root image to make it more secure.
 
+You should also mount a configuration file to `/app/config.json`.
+
 It's also possible to use KISSS without Docker, but for that you need to compile it yourself. In the future there will be executables without dependencies available.
 
 ## Configuration
 
-You can configure some settings using environment variables:
+You can configure some settings using a `config.json` file in the working directory or provide a custom path to it using the `-c` CLI flag:
 
-`PORT` (`8080`): Set the port to which KISSS should listen
+`port` (`8080`): Set the port to which KISSS should listen
 
-`DNT` (`true`): Set whether or not KISSS should respect Do-Not-Track headers some browsers send
+`dnt` (`true`): Set whether or not KISSS should respect Do-Not-Track headers some browsers send
 
-`DB_PATH` (`data/kis3.db`): Set the path for the SQLite database (relative to the working directory - in the Docker container it's `/app`).
+`dbPath` (`data/kis3.db`): Set the path for the SQLite database (relative to the working directory - in the Docker container it's `/app`).
 
-You can make the statistics private and only accessible with authentication by setting both `STATS_USERNAME` and `STATS_PASSWORD` to a username and password. If only one or none is set, the statistics are accessible without authorization and public to anyone.
+You can make the statistics private and only accessible with authentication by setting both `statsUsername` and `statsPassword` to a username and password. If only one or none is set, the statistics are accessible without authorization and public to anyone.
+
+The configuration file can look like this:
+
+```json
+{
+  "port": 8080,
+  "dnt": true,
+  "dbPath": "data/kis3.db",
+  "statsUsername": "myusername",
+  "statsPassword": "mysecretpassword"
+}
+```
+
+If you specify an environment variable (`PORT`, `DNT`, `DB_PATH`, `STATS_USERNAME`, `STATS_PASSWORD`), that will override the settings from the configuration file.
 
 ## Add to website
 
@@ -55,6 +69,31 @@ The following filters are available:
 `order`: select whether to use ascending order (`ASC`) or descending order (`DESC`)
 
 `format`: the format to represent the data, default is `plain` for a simple plain text list, `json` for a JSON response or `chart` for a chart generated with ChartJS in the browser
+
+## Daily email reports
+
+KISSS has a feature that can send you daily email reports. It basically requests the statistics and sends the response via email. You can configure it by adding report configurations to the configuration file:
+
+```json
+{
+  // Other configurations...
+  "reports": [
+    {
+      "name": "Daily stats from KISSS",
+      "time": "15:00",
+      "query": "view=pages&orderrow=second&order=desc",
+      "from": "myemailaddress@mydomain.tld",
+      "to": "myemailaddress@mydomain.tld",
+      "smtpHost": "mail.mydomain.tld:587",
+      "smtpUser": "myemailaddress@mydomain.tld",
+      "smtpPassword": "mysecretpassword"
+    },
+    {
+      // Additional reports...
+    }
+  ]
+}
+```
 
 ## License
 
