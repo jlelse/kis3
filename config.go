@@ -3,7 +3,10 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
+	"os"
+	"strconv"
 )
 
 type config struct {
@@ -26,6 +29,9 @@ var (
 
 func init() {
 	parseConfigFile(appConfig)
+	// Replace values that are set via environment vars (to make it compatible with old method)
+	overwriteEnvVarValues(appConfig)
+	fmt.Println(appConfig)
 }
 
 func parseConfigFile(appConfig *config) {
@@ -40,6 +46,30 @@ func parseConfigFile(appConfig *config) {
 		return
 	}
 	return
+}
+
+func overwriteEnvVarValues(appConfig *config) {
+	port, set := os.LookupEnv("PORT")
+	if set {
+		appConfig.Port = port
+	}
+	dntString, set := os.LookupEnv("DNT")
+	dntBool, e := strconv.ParseBool(dntString)
+	if set && e == nil {
+		appConfig.Dnt = dntBool
+	}
+	dbPath, set := os.LookupEnv("DB_PATH")
+	if set {
+		appConfig.DbPath = dbPath
+	}
+	username, set := os.LookupEnv("STATS_USERNAME")
+	if set {
+		appConfig.StatsUsername = username
+	}
+	password, set := os.LookupEnv("STATS_PASSWORD")
+	if set {
+		appConfig.StatsPassword = password
+	}
 }
 
 func (ac *config) statsAuth() bool {
