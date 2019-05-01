@@ -21,7 +21,9 @@ type kis3 struct {
 }
 
 var (
-	app = &kis3{}
+	app = &kis3{
+		staticBox: packr.New("staticFiles", "./static"),
+	}
 )
 
 func init() {
@@ -30,7 +32,7 @@ func init() {
 		log.Fatal("Database setup failed:", e)
 	}
 	setupRouter()
-	app.staticBox = packr.New("staticFiles", "./static")
+	setupReports()
 }
 
 func main() {
@@ -49,13 +51,13 @@ func setupRouter() {
 
 	viewRouter := app.router.PathPrefix("/view").Subrouter()
 	viewRouter.Use(corsHandler)
-	viewRouter.Path("").HandlerFunc(trackView)
+	viewRouter.Path("").HandlerFunc(TrackingHandler)
 
-	app.router.HandleFunc("/stats", requestStats)
+	app.router.HandleFunc("/stats", StatsHandler)
 
 	staticRouter := app.router.PathPrefix("").Subrouter()
 	staticRouter.Use(corsHandler)
-	staticRouter.HandleFunc("/kis3.js", serveTrackingScript)
+	staticRouter.HandleFunc("/kis3.js", TrackingScriptHandler)
 	staticRouter.PathPrefix("").Handler(http.HandlerFunc(HelloResponseHandler))
 }
 
@@ -66,7 +68,7 @@ func startListening() {
 	log.Fatal(http.ListenAndServe(addr, app.router))
 }
 
-func trackView(w http.ResponseWriter, r *http.Request) {
+func TrackingHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0")
 	url := r.URL.Query().Get("url")
 	ref := r.URL.Query().Get("ref")
@@ -81,7 +83,7 @@ func HelloResponseHandler(w http.ResponseWriter, _ *http.Request) {
 	_, _ = fmt.Fprint(w, "Hello from KISSS")
 }
 
-func serveTrackingScript(w http.ResponseWriter, r *http.Request) {
+func TrackingScriptHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/javascript")
 	w.Header().Set("Cache-Control", "public, max-age=432000") // 5 days
 	filename := "kis3.js"
@@ -97,7 +99,7 @@ func serveTrackingScript(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, filename, stat.ModTime(), file)
 }
 
-func requestStats(w http.ResponseWriter, r *http.Request) {
+func StatsHandler(w http.ResponseWriter, r *http.Request) {
 	// Require authentication
 	if appConfig.statsAuth() {
 		if !helpers.CheckAuth(w, r, appConfig.StatsUsername, appConfig.StatsPassword) {

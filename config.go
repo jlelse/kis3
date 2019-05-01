@@ -3,18 +3,29 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"strconv"
 )
 
 type config struct {
-	Port          string `json:"port"`
-	Dnt           bool   `json:"dnt"`
-	DbPath        string `json:"dbPath"`
-	StatsUsername string `json:"statsUsername"`
-	StatsPassword string `json:"statsPassword"`
+	Port          string   `json:"port"`
+	Dnt           bool     `json:"dnt"`
+	DbPath        string   `json:"dbPath"`
+	StatsUsername string   `json:"statsUsername"`
+	StatsPassword string   `json:"statsPassword"`
+	Reports       []report `json:"reports"`
+}
+
+type report struct {
+	Name         string `json:"name"`
+	Time         string `json:"time"`
+	To           string `json:"to"`
+	SmtpUser     string `json:"smtpUser"`
+	SmtpPassword string `json:"smtpPassword"`
+	SmtpHost     string `json:"smtpHost"`
+	From         string `json:"from"`
+	Query        string `json:"query"`
 }
 
 var (
@@ -31,7 +42,6 @@ func init() {
 	parseConfigFile(appConfig)
 	// Replace values that are set via environment vars (to make it compatible with old method)
 	overwriteEnvVarValues(appConfig)
-	fmt.Println(appConfig)
 }
 
 func parseConfigFile(appConfig *config) {
