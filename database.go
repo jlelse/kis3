@@ -19,10 +19,10 @@ type Database struct {
 
 func initDatabase() (database *Database, e error) {
 	database = &Database{}
-	if _, err := os.Stat(appConfig.dbPath); os.IsNotExist(err) {
-		_ = os.MkdirAll(filepath.Dir(appConfig.dbPath), os.ModePerm)
+	if _, err := os.Stat(appConfig.DbPath); os.IsNotExist(err) {
+		_ = os.MkdirAll(filepath.Dir(appConfig.DbPath), os.ModePerm)
 	}
-	database.sqlDB, e = sql.Open("sqlite3", appConfig.dbPath)
+	database.sqlDB, e = sql.Open("sqlite3", appConfig.DbPath)
 	if e != nil {
 		return
 	}
