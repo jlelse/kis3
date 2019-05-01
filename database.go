@@ -85,8 +85,9 @@ type ViewsRequest struct {
 	url      string
 	ref      string
 	ua       string
-	orderrow string
+	ordercol string
 	order    string
+	limit    string
 }
 
 type RequestResultRow struct {
@@ -134,26 +135,31 @@ func (request *ViewsRequest) buildStatement() (statement string, parameters []sq
 	}
 	orderrow := "first"
 	order := "ASC"
-	if request.orderrow == "second" {
+	if request.ordercol == "second" {
 		orderrow = "second"
 	}
 	if request.order == "DESC" {
 		order = "DESC"
 	}
-	orderstatement := " ORDER BY " + orderrow + " " + order
+	orderStatement := " ORDER BY " + orderrow + " " + order
+	limitStatement := ""
+	if len(request.limit) != 0 {
+		limitStatement = " LIMIT :limit"
+		parameters = append(parameters, sql.Named("limit", request.limit))
+	}
 	switch request.view {
 	case PAGES:
-		statement = "SELECT url as first, count(*) as second from views" + filters + "group by first" + orderstatement + ";"
+		statement = "SELECT url as first, count(*) as second from views" + filters + "group by first" + orderStatement + limitStatement + ";"
 	case REFERRERS:
-		statement = "SELECT ref as first, count(*) as second from views" + filters + "group by first" + orderstatement + ";"
+		statement = "SELECT ref as first, count(*) as second from views" + filters + "group by first" + orderStatement + limitStatement + ";"
 	case USERAGENTS:
-		statement = "SELECT useragent as first, count(*) as second from views" + filters + "group by first" + orderstatement + ";"
+		statement = "SELECT useragent as first, count(*) as second from views" + filters + "group by first" + orderStatement + limitStatement + ";"
 	case USERAGENTNAMES:
-		statement = "SELECT substr(useragent, 1, pos-1) as first, COUNT(*) as second from (SELECT *, instr(useragent,' ') AS pos FROM views)" + filters + "group by first" + orderstatement + ";"
+		statement = "SELECT substr(useragent, 1, pos-1) as first, COUNT(*) as second from (SELECT *, instr(useragent,' ') AS pos FROM views)" + filters + "group by first" + orderStatement + limitStatement + ";"
 	case ALLHOURS:
-		statement = "WITH RECURSIVE hours(hour) AS ( VALUES (datetime(strftime('%Y-%m-%dT%H:00', (SELECT min(time) from views" + filters + "), 'localtime'))) UNION ALL SELECT datetime(hour, '+1 hour') FROM hours WHERE hour <= strftime('%Y-%m-%d %H', (SELECT max(time) from views" + filters + "), 'localtime') ) SELECT strftime('%Y-%m-%d %H', hours.hour) as first, COUNT(time) as second FROM hours LEFT OUTER JOIN (SELECT time from views" + filters + ") ON strftime('%Y-%m-%d %H', hours.hour) = strftime('%Y-%m-%d %H', time, 'localtime') GROUP BY first" + orderstatement + ";"
+		statement = "WITH RECURSIVE hours(hour) AS ( VALUES (datetime(strftime('%Y-%m-%dT%H:00', (SELECT min(time) from views" + filters + "), 'localtime'))) UNION ALL SELECT datetime(hour, '+1 hour') FROM hours WHERE hour <= strftime('%Y-%m-%d %H', (SELECT max(time) from views" + filters + "), 'localtime') ) SELECT strftime('%Y-%m-%d %H', hours.hour) as first, COUNT(time) as second FROM hours LEFT OUTER JOIN (SELECT time from views" + filters + ") ON strftime('%Y-%m-%d %H', hours.hour) = strftime('%Y-%m-%d %H', time, 'localtime') GROUP BY first" + orderStatement + limitStatement + ";"
 	case ALLDAYS:
-		statement = "WITH RECURSIVE days(day) AS ( VALUES (datetime((SELECT min(time) from views" + filters + "), 'localtime', 'start of day')) UNION ALL SELECT datetime(day, '+1 day') FROM days WHERE day <= date((SELECT max(time) from views" + filters + "), 'localtime') ) SELECT strftime('%Y-%m-%d', days.day) as first, COUNT(time) as second FROM days LEFT OUTER JOIN (SELECT time from views" + filters + ") ON strftime('%Y-%m-%d', days.day) = strftime('%Y-%m-%d', time, 'localtime') GROUP BY first" + orderstatement + ";"
+		statement = "WITH RECURSIVE days(day) AS ( VALUES (datetime((SELECT min(time) from views" + filters + "), 'localtime', 'start of day')) UNION ALL SELECT datetime(day, '+1 day') FROM days WHERE day <= date((SELECT max(time) from views" + filters + "), 'localtime') ) SELECT strftime('%Y-%m-%d', days.day) as first, COUNT(time) as second FROM days LEFT OUTER JOIN (SELECT time from views" + filters + ") ON strftime('%Y-%m-%d', days.day) = strftime('%Y-%m-%d', time, 'localtime') GROUP BY first" + orderStatement + limitStatement + ";"
 	case HOURS, DAYS, WEEKS, MONTHS:
 		format := ""
 		switch request.view {
@@ -166,7 +172,7 @@ func (request *ViewsRequest) buildStatement() (statement string, parameters []sq
 		case MONTHS:
 			format = "%Y-%m"
 		}
-		statement = "SELECT strftime('" + format + "', time, 'localtime') as first, count(*) as second from views" + filters + "group by first" + orderstatement + ";"
+		statement = "SELECT strftime('" + format + "', time, 'localtime') as first, count(*) as second from views" + filters + "group by first" + orderStatement + limitStatement + ";"
 	}
 	return
 }

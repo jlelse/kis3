@@ -64,9 +64,11 @@ The following filters are available:
 
 `ua`: filter user agents containing the string provided, so `Firefox` filters out all user agents that don't contain `Firefox`
 
-`orderrow`: row to use for ordering, `first` for the data groups, `second` for the view counts
+`ordercol`: column to use for ordering, `first` for the data groups, `second` for the view counts
 
 `order`: select whether to use ascending order (`ASC`) or descending order (`DESC`)
+
+`limit`: limit the number of rows returned
 
 `format`: the format to represent the data, default is `plain` for a simple plain text list, `json` for a JSON response or `chart` for a chart generated with ChartJS in the browser
 

@@ -138,8 +138,9 @@ func StatsHandler(w http.ResponseWriter, r *http.Request) {
 		url:      queries.Get("url"),
 		ref:      queries.Get("ref"),
 		ua:       queries.Get("ua"),
-		orderrow: strings.ToLower(queries.Get("orderrow")),
+		ordercol: strings.ToLower(queries.Get("ordercol")),
 		order:    strings.ToUpper(queries.Get("order")),
+		limit:    queries.Get("limit"),
 	})
 	if e != nil {
 		fmt.Println("Database request failed:", e)
