@@ -13,7 +13,7 @@ RUN go test
 RUN go build kis3.dev/kis3
 
 FROM alpine:3.9
-RUN apk add --no-cache tzdata
+RUN apk add --no-cache tzdata ca-certificates && update-ca-certificates
 RUN adduser -S -D -H -h /app kis3
 COPY --from=build /app/kis3 /bin/
 RUN mkdir /app && chown -R kis3 /app
