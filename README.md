@@ -14,7 +14,13 @@ To persist the data KISSS collects, you should mount a volume or a folder to `/a
 
 You should also mount a configuration file to `/app/config.json`.
 
-It's also possible to use KISSS without Docker, but for that you need to compile it yourself. In the future there will be executables without dependencies available.
+### Build from source
+
+It's also possible to use KISSS without Docker, but for that you need to compile it yourself. All you need to do so is installing go (follow the [instruction](https://golang.org/doc/install) or use [distro.tools](https://distro.tools) to install the latest version on Linux - you need at least version 1.12) and execute the following command:
+
+    go get -u github.com/kis3/kis3
+ 
+ After that there should be an executable with the name `kis3` in `$HOME/go/bin`.
 
 ## Configuration
 
@@ -83,7 +89,7 @@ KISSS has a feature that can send you daily email reports. It basically requests
     {
       "name": "Daily stats from KISSS",
       "time": "15:00",
-      "query": "view=pages&orderrow=second&order=desc",
+      "query": "view=pages&ordercol=second&order=desc",
       "from": "myemailaddress@mydomain.tld",
       "to": "myemailaddress@mydomain.tld",
       "smtpHost": "mail.mydomain.tld:587",
