@@ -1,4 +1,4 @@
-module kis3.dev/kis3
+module github.com/kis3/kis3
 
 go 1.12
 

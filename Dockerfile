@@ -10,7 +10,7 @@ ADD . /app
 WORKDIR /app
 RUN GO111MODULE=on packr2
 RUN go test
-RUN go build kis3.dev/kis3
+RUN go build github.com/kis3/kis3
 
 FROM alpine:3.9
 RUN apk add --no-cache tzdata ca-certificates && update-ca-certificates
