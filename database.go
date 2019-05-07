@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type Database struct {
@@ -81,7 +82,9 @@ const (
 type ViewsRequest struct {
 	view     View
 	from     string
+	fromRel  string
 	to       string
+	toRel    string
 	url      string
 	ref      string
 	ua       string
@@ -197,6 +200,20 @@ func (request *ViewsRequest) buildFilter() (filters string, parameters []sql.Nam
 }
 
 func (request *ViewsRequest) buildDateTimeFilter(namedArg *[]sql.NamedArg) (dateTimeFilter string) {
+	// Generate absolute from / to from relative ones
+	if len(request.fromRel) > 0 {
+		duration, e := time.ParseDuration(request.fromRel)
+		if e == nil {
+			request.from = time.Now().Add(duration).Format("2006-01-02 15:04:05")
+		}
+	}
+	if len(request.toRel) > 0 {
+		duration, e := time.ParseDuration(request.toRel)
+		if e == nil {
+			request.to = time.Now().Add(duration).Format("2006-01-02 15:04:05")
+		}
+	}
+	// Build filter
 	selector := "datetime(time, 'localtime')"
 	if len(request.from) > 0 && len(request.to) > 0 {
 		*namedArg = append(*namedArg, sql.Named("from", request.from))

@@ -134,7 +134,9 @@ func StatsHandler(w http.ResponseWriter, r *http.Request) {
 	result, e := app.db.request(&ViewsRequest{
 		view:     view,
 		from:     queries.Get("from"),
+		fromRel:  queries.Get("fromrel"),
 		to:       queries.Get("to"),
+		toRel:    queries.Get("torel"),
 		url:      queries.Get("url"),
 		ref:      queries.Get("ref"),
 		ua:       queries.Get("ua"),

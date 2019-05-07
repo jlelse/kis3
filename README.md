@@ -64,6 +64,8 @@ The following filters are available:
 
 `to`: end time of the selection
 
+`fromrel` / `torel`: relative time from now for `to` or `from` (e.g `-2h45m`, valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h"
+
 `url`: filter URLs containing the string provided, so `word` filters out all URLs that don't contain `word`
 
 `ref`: filter referrers containing the string provided, so `word` filters out all refferers that don't contain `word`
