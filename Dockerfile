@@ -1,5 +1,5 @@
 FROM alpine:edge as build-base
-RUN apk add --no-cache go git gcc musl-dev tzdata
+RUN apk add --no-cache go git gcc musl-dev sqlite
 
 FROM build-base as packr
 RUN go get github.com/gobuffalo/packr/v2/packr2
@@ -10,10 +10,10 @@ ADD . /app
 WORKDIR /app
 RUN GO111MODULE=on packr2
 RUN go test
-RUN go build github.com/kis3/kis3
+RUN go build --tags "libsqlite3 linux" github.com/kis3/kis3
 
 FROM alpine:3.9
-RUN apk add --no-cache tzdata ca-certificates && update-ca-certificates
+RUN apk add --no-cache tzdata ca-certificates sqlite
 RUN adduser -S -D -H -h /app kis3
 COPY --from=build /app/kis3 /bin/
 RUN mkdir /app && chown -R kis3 /app
