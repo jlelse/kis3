@@ -15,7 +15,8 @@ import (
 )
 
 type Database struct {
-	sqlDB *sql.DB
+	sqlDB        *sql.DB
+	trackingStmt *sql.Stmt
 }
 
 func initDatabase() (database *Database, e error) {
@@ -28,6 +29,10 @@ func initDatabase() (database *Database, e error) {
 		return
 	}
 	e = migrateDatabase(database.sqlDB)
+	database.trackingStmt, e = database.sqlDB.Prepare("insert into views(url, ref, useragent) values(:url, :ref, :ua)")
+	if e != nil {
+		return
+	}
 	return
 }
 
@@ -56,7 +61,7 @@ func (db *Database) trackView(urlString string, ref string, ua string) {
 		uaName, uaVersion := user_agent.New(ua).Browser()
 		ua = uaName + " " + uaVersion
 	}
-	_, e := db.sqlDB.Exec("insert into views(url, ref, useragent) values(:url, :ref, :ua)", sql.Named("url", urlString), sql.Named("ref", ref), sql.Named("ua", ua))
+	_, e := db.trackingStmt.Exec(sql.Named("url", urlString), sql.Named("ref", ref), sql.Named("ua", ua))
 	if e != nil {
 		fmt.Println("Inserting into DB failed:", e)
 	}
