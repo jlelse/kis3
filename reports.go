@@ -25,7 +25,7 @@ type report struct {
 	TGUserId     int64  `json:"tgUserId"`
 }
 
-func setupReports() {
+func startReports() {
 	scheduler := clockwork.NewScheduler()
 	for _, r := range appConfig.Reports {
 		scheduledReport := r
@@ -33,7 +33,7 @@ func setupReports() {
 			executeReport(&scheduledReport)
 		})
 	}
-	go scheduler.Run()
+	scheduler.Run()
 }
 
 func executeReport(r *report) {

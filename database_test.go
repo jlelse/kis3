@@ -5,8 +5,6 @@ import (
 	"testing"
 )
 
-
-
 func TestViewsRequest_buildDateTimeFilter(t *testing.T) {
 	t.Run("No DateTime filter", func(t *testing.T) {
 		request := &ViewsRequest{

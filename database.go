@@ -19,17 +19,20 @@ type Database struct {
 	trackingStmt *sql.Stmt
 }
 
-func initDatabase() (database *Database, e error) {
-	database = &Database{}
+var (
+	db = &Database{}
+)
+
+func initDatabase() (e error) {
 	if _, err := os.Stat(appConfig.DbPath); os.IsNotExist(err) {
 		_ = os.MkdirAll(filepath.Dir(appConfig.DbPath), os.ModePerm)
 	}
-	database.sqlDB, e = sql.Open("sqlite3", appConfig.DbPath)
+	db.sqlDB, e = sql.Open("sqlite3", appConfig.DbPath)
 	if e != nil {
 		return
 	}
-	e = migrateDatabase(database.sqlDB)
-	database.trackingStmt, e = database.sqlDB.Prepare("insert into views(url, ref, useragent) values(:url, :ref, :ua)")
+	e = migrateDatabase(db.sqlDB)
+	db.trackingStmt, e = db.sqlDB.Prepare("insert into views(url, ref, useragent) values(:url, :ref, :ua)")
 	if e != nil {
 		return
 	}
@@ -46,7 +49,7 @@ func migrateDatabase(database *sql.DB) (e error) {
 
 // Tracking
 
-func (db *Database) trackView(urlString string, ref string, ua string) {
+func trackView(urlString string, ref string, ua string) {
 	if len(urlString) == 0 {
 		// Don't track empty urls
 		return
@@ -104,7 +107,7 @@ type RequestResultRow struct {
 	Second int    `json:"second"`
 }
 
-func (db *Database) request(request *ViewsRequest) (resultRows []*RequestResultRow, e error) {
+func request(request *ViewsRequest) (resultRows []*RequestResultRow, e error) {
 	statement, parameters := request.buildStatement()
 	namedArgs := make([]interface{}, len(parameters))
 	for i, v := range parameters {

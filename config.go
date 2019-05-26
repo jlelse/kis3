@@ -27,7 +27,7 @@ var (
 	}
 )
 
-func init() {
+func initConfig() {
 	parseConfigFile(appConfig)
 	// Replace values that are set via environment vars (to make it compatible with old method)
 	overwriteEnvVarValues(appConfig)
