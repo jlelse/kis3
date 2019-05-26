@@ -82,6 +82,7 @@ const (
 	MONTHS
 	ALLHOURS
 	ALLDAYS
+	COUNT
 )
 
 type ViewsRequest struct {
@@ -112,26 +113,34 @@ func (db *Database) request(request *ViewsRequest) (resultRows []*RequestResultR
 	rows, e := db.sqlDB.Query(statement, namedArgs...)
 	if e != nil {
 		return
-	} else {
-		resultRows = []*RequestResultRow{}
-		for rows.Next() {
-			var first string
-			var second int
-			e = rows.Scan(&first, &second)
-			if e != nil {
-				_ = rows.Close()
-				return
-			}
-			if first == "" {
-				first = "Undefined"
-			}
-			resultRows = append(resultRows, &RequestResultRow{
-				First:  first,
-				Second: second,
-			})
-		}
+	}
+	columns, e := rows.Columns()
+	if e != nil {
 		return
 	}
+	noOfColumns := len(columns)
+	resultRows = []*RequestResultRow{}
+	for rows.Next() {
+		var first string
+		var second int
+		if noOfColumns == 2 {
+			e = rows.Scan(&first, &second)
+		} else if noOfColumns == 1 {
+			e = rows.Scan(&second)
+		}
+		if e != nil {
+			_ = rows.Close()
+			return
+		}
+		if first == "" {
+			first = "Undefined"
+		}
+		resultRows = append(resultRows, &RequestResultRow{
+			First:  first,
+			Second: second,
+		})
+	}
+	return
 }
 
 func (request *ViewsRequest) buildStatement() (statement string, parameters []sql.NamedArg) {
@@ -181,6 +190,8 @@ func (request *ViewsRequest) buildStatement() (statement string, parameters []sq
 			format = "%Y-%m"
 		}
 		statement = "SELECT strftime('" + format + "', time, 'localtime') as first, count(*) as second from views" + filters + "group by first" + orderStatement + limitStatement + ";"
+	case COUNT:
+		statement = "SELECT count(*) as second from views" + filters + ";"
 	}
 	return
 }

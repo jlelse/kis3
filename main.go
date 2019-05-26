@@ -130,6 +130,8 @@ func StatsHandler(w http.ResponseWriter, r *http.Request) {
 		view = ALLHOURS
 	case "alldays":
 		view = ALLDAYS
+	case "count":
+		view = COUNT
 	}
 	result, e := app.db.request(&ViewsRequest{
 		view:     view,
