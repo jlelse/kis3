@@ -80,9 +80,9 @@ The following filters are available:
 
 `format`: the format to represent the data, default is `plain` for a simple plain text list, `json` for a JSON response or `chart` for a chart generated with ChartJS in the browser
 
-## Daily email reports
+## Daily reports
 
-KISSS has a feature that can send you daily email reports. It basically requests the statistics and sends the response via email. You can configure it by adding report configurations to the configuration file:
+KISSS has a feature that can send you daily reports. It basically requests the statistics and sends the response via your preferred communication channel (mail or Telegram). You can configure it by adding report configurations to the configuration file:
 
 ```json
 {
@@ -99,11 +99,20 @@ KISSS has a feature that can send you daily email reports. It basically requests
       "smtpPassword": "mysecretpassword"
     },
     {
+      "name": "Daily stats from KISSS",
+      "time": "15:00",
+      "query": "view=pages&ordercol=second&order=desc",
+      "tgBotToken": "TelegramBotToken",
+      "tgUserId": 123456
+    },
+    {
       // Additional reports...
     }
   ]
 }
 ```
+
+To use Telegram for reports, create a bot with the [Bot Father](https://t.me/BotFather) and request your user id from [@userinfobot](https://t.me/userinfobot).
 
 ## License
 

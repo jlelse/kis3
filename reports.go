@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/jordan-wright/email"
 	"github.com/whiteshtef/clockwork"
 	"io/ioutil"
@@ -9,6 +10,20 @@ import (
 	"net/http"
 	"net/smtp"
 )
+
+type report struct {
+	Name         string `json:"name"`
+	Time         string `json:"time"`
+	Query        string `json:"query"`
+	Type         string `json:"type"`
+	To           string `json:"to"`
+	From         string `json:"from"`
+	SmtpUser     string `json:"smtpUser"`
+	SmtpPassword string `json:"smtpPassword"`
+	SmtpHost     string `json:"smtpHost"`
+	TGBotToken   string `json:"tgBotToken"`
+	TGUserId     int64  `json:"tgUserId"`
+}
 
 func setupReports() {
 	scheduler := clockwork.NewScheduler()
@@ -39,10 +54,23 @@ func executeReport(r *report) {
 		fmt.Println("Executing report failed:", e)
 		return
 	}
-	sendMail(r, body)
+	sendReport(r, body)
+}
+
+func sendReport(r *report, content []byte) {
+	switch r.Type {
+	case "telegram":
+		sendTelegram(r, content)
+	default:
+		sendMail(r, content)
+	}
 }
 
 func sendMail(r *report, content []byte) {
+	if r.To == "" || r.From == "" || r.SmtpUser == "" || r.SmtpHost == "" {
+		fmt.Println("No valid report configuration")
+		return
+	}
 	smtpHostNoPort, _, _ := net.SplitHostPort(r.SmtpHost)
 	mail := email.NewEmail()
 	mail.From = r.From
@@ -50,6 +78,26 @@ func sendMail(r *report, content []byte) {
 	mail.Subject = "KISSS report: " + r.Name
 	mail.Text = content
 	e := mail.Send(r.SmtpHost, smtp.PlainAuth("", r.SmtpUser, r.SmtpPassword, smtpHostNoPort))
+	if e != nil {
+		fmt.Println("Sending report failed:", e)
+		return
+	} else {
+		fmt.Println("Report sent")
+	}
+}
+
+func sendTelegram(r *report, content []byte) {
+	if r.TGUserId == 0 || r.TGBotToken == "" {
+		fmt.Println("No valid report configuration")
+		return
+	}
+	bot, e := tgbotapi.NewBotAPI(r.TGBotToken)
+	if e != nil {
+		fmt.Println("Sending report failed:", e)
+		return
+	}
+	msg := tgbotapi.NewMessage(r.TGUserId, r.Name+"\n\n"+string(content))
+	_, e = bot.Send(msg)
 	if e != nil {
 		fmt.Println("Sending report failed:", e)
 		return

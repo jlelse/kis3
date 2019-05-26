@@ -17,17 +17,6 @@ type config struct {
 	Reports       []report `json:"reports"`
 }
 
-type report struct {
-	Name         string `json:"name"`
-	Time         string `json:"time"`
-	To           string `json:"to"`
-	SmtpUser     string `json:"smtpUser"`
-	SmtpPassword string `json:"smtpPassword"`
-	SmtpHost     string `json:"smtpHost"`
-	From         string `json:"from"`
-	Query        string `json:"query"`
-}
-
 var (
 	appConfig = &config{
 		Port:          "8080",
