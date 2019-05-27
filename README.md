@@ -6,7 +6,9 @@
 
 KISSS is really easy to install via Docker.
 
-    docker run -d --name kis3 -p 8080:8080 -v kis3:/app/data -v ${pwd}/config.json:/app/config.json kis3/kis3
+```bash
+docker run -d --name kis3 -p 8080:8080 -v kis3:/app/data -v ${pwd}/config.json:/app/config.json kis3/kis3
+```
 
 Depending on your setup, replace `-p 8080:8080` with your custom port configuration. KISSS listens to port 8080 by default, but you can also change this via the configuration.
 
@@ -18,9 +20,11 @@ You should also mount a configuration file to `/app/config.json`.
 
 It's also possible to use KISSS without Docker, but for that you need to compile it yourself. All you need to do so is installing go (follow the [instruction](https://golang.org/doc/install) or use [distro.tools](https://distro.tools) to install the latest version on Linux - you need at least version 1.12) and execute the following command:
 
-    go get -u github.com/kis3/kis3
- 
- After that there should be an executable with the name `kis3` in `$HOME/go/bin`.
+```bash
+go get -u github.com/kis3/kis3
+```
+
+After that there should be an executable with the name `kis3` in `$HOME/go/bin`.
 
 ## Configuration
 
@@ -47,6 +51,24 @@ The configuration file can look like this:
 ```
 
 If you specify an environment variable (`PORT`, `DNT`, `DB_PATH`, `STATS_USERNAME`, `STATS_PASSWORD`), that will override the settings from the configuration file.
+
+### Email
+
+To enable email integration for sending reports, you need to add some configuration values for that:
+
+`smtpFrom`: Sender address for the emails
+
+`smtpHost`: Address of the mail server (including port)
+
+`smtpUser`: Username for SMTP login
+
+`smtpPassword`: Password for SMTP login
+
+### Telegram
+
+The Telegram integration allows sending reports via Telegram and also requesting stats via Telegram. For that the following configuration value must be set:
+
+`tgBotToken`: Token for the Telegram bot, which you can request via the [Bot Father](https://t.me/BotFather).
 
 ## Add to website
 
@@ -80,6 +102,12 @@ The following filters are available:
 
 `format`: the format to represent the data, default is `plain` for a simple plain text list, `json` for a JSON response or `chart` for a chart generated with ChartJS in the browser
 
+### Via Telegram
+
+You can also request stats via Telegram (in case you enable the Telegram integration). To do so, simply send a message with the command `stats` like `/stats view=pages...`.
+
+If you have authentication enabled, you need to add `username=yourusername&password=yourpassword` to the query.
+
 ## Daily reports
 
 KISSS has a feature that can send you daily reports. It basically requests the statistics and sends the response via your preferred communication channel (mail or Telegram). You can configure it by adding report configurations to the configuration file:
@@ -89,20 +117,19 @@ KISSS has a feature that can send you daily reports. It basically requests the s
   // Other configurations...
   "reports": [
     {
+      // Email configuration
       "name": "Daily stats from KISSS",
       "time": "15:00",
       "query": "view=pages&ordercol=second&order=desc",
       "from": "myemailaddress@mydomain.tld",
-      "to": "myemailaddress@mydomain.tld",
-      "smtpHost": "mail.mydomain.tld:587",
-      "smtpUser": "myemailaddress@mydomain.tld",
-      "smtpPassword": "mysecretpassword"
+      "to": "myemailaddress@mydomain.tld"
     },
     {
+      // Telegram configuration
       "name": "Daily stats from KISSS",
+      "type": "telegram", // Add this for Telegram
       "time": "15:00",
       "query": "view=pages&ordercol=second&order=desc",
-      "tgBotToken": "TelegramBotToken",
       "tgUserId": 123456
     },
     {
@@ -112,7 +139,7 @@ KISSS has a feature that can send you daily reports. It basically requests the s
 }
 ```
 
-To use Telegram for reports, create a bot with the [Bot Father](https://t.me/BotFather) and request your user id from [@userinfobot](https://t.me/userinfobot).
+You can find out your Telegram user id using [@userinfobot](https://t.me/userinfobot).
 
 ## License
 

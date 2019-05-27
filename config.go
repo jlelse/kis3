@@ -14,6 +14,11 @@ type config struct {
 	DbPath        string   `json:"dbPath"`
 	StatsUsername string   `json:"statsUsername"`
 	StatsPassword string   `json:"statsPassword"`
+	SmtpFrom      string   `json:"smtpfrom"`
+	SmtpUser      string   `json:"smtpUser"`
+	SmtpPassword  string   `json:"smtpPassword"`
+	SmtpHost      string   `json:"smtpHost"`
+	TGBotToken    string   `json:"tgBotToken"`
 	Reports       []report `json:"reports"`
 }
 
@@ -24,6 +29,7 @@ var (
 		DbPath:        "data/kis3.db",
 		StatsUsername: "",
 		StatsPassword: "",
+		TGBotToken:    "",
 	}
 )
 

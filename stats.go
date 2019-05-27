@@ -3,14 +3,17 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/kis3/kis3/helpers"
+	"github.com/whiteshtef/clockwork"
 	"html/template"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 )
 
-func initStatsRouter()  {
+func initStatsRouter() {
 	app.router.HandleFunc("/stats", StatsHandler)
 }
 
@@ -22,7 +25,25 @@ func StatsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	// Do request
-	queries := r.URL.Query()
+	queryValues := r.URL.Query()
+	result, e := doRequest(queryValues)
+	if e != nil {
+		fmt.Println("Database request failed:", e)
+		w.WriteHeader(500)
+	} else if result != nil {
+		w.Header().Set("Cache-Control", "max-age=0")
+		switch queryValues.Get("format") {
+		case "json":
+			sendJsonResponse(result, w)
+		case "chart":
+			sendChartResponse(result, w)
+		default: // "plain"
+			sendPlainResponse(result, w)
+		}
+	}
+}
+
+func doRequest(queries url.Values) (result []*RequestResultRow, e error) {
 	view := PAGES
 	switch strings.ToLower(queries.Get("view")) {
 	case "pages":
@@ -48,7 +69,7 @@ func StatsHandler(w http.ResponseWriter, r *http.Request) {
 	case "count":
 		view = COUNT
 	}
-	result, e := request(&ViewsRequest{
+	result, e = request(&ViewsRequest{
 		view:     view,
 		from:     queries.Get("from"),
 		fromRel:  queries.Get("fromrel"),
@@ -61,20 +82,7 @@ func StatsHandler(w http.ResponseWriter, r *http.Request) {
 		order:    strings.ToUpper(queries.Get("order")),
 		limit:    queries.Get("limit"),
 	})
-	if e != nil {
-		fmt.Println("Database request failed:", e)
-		w.WriteHeader(500)
-	} else if result != nil {
-		w.Header().Set("Cache-Control", "max-age=0")
-		switch queries.Get("format") {
-		case "json":
-			sendJsonResponse(result, w)
-		case "chart":
-			sendChartResponse(result, w)
-		default: // "plain"
-			sendPlainResponse(result, w)
-		}
-	}
+	return
 }
 
 func sendPlainResponse(result []*RequestResultRow, w http.ResponseWriter) {
@@ -119,4 +127,56 @@ func sendChartResponse(result []*RequestResultRow, w http.ResponseWriter) {
 		return
 	}
 	_ = t.Execute(w, data)
+}
+
+func startStatsTelegram() {
+	if app.tgBot == nil {
+		return
+	}
+	u := tgbotapi.NewUpdate(0)
+	scheduler := clockwork.NewScheduler()
+	scheduler.Schedule().Every(5).Seconds().Do(func() {
+		checkForTelegramUpdates(&u)
+	})
+	scheduler.Run()
+}
+
+func checkForTelegramUpdates(u *tgbotapi.UpdateConfig) {
+	updates, e := app.tgBot.GetUpdates(*u)
+	if e != nil {
+		return
+	}
+	for _, update := range updates {
+		if update.Message != nil && update.Message.Command() == "stats" {
+			response := ""
+			fakeUrl, e := url.Parse("/stats?" + update.Message.CommandArguments())
+			if e != nil {
+				response = "Request failed"
+			} else {
+				if appConfig.statsAuth() && (fakeUrl.Query().Get("username") != appConfig.StatsUsername || fakeUrl.Query().Get("password") != appConfig.StatsPassword) {
+					response = "Not authorized. Add username=yourusername&password=yourpassword to the query."
+				} else {
+					result, e := doRequest(fakeUrl.Query())
+					if e != nil {
+						response = "Request failed"
+					} else {
+						rowStrings := make([]string, len(result))
+						for i, row := range result {
+							rowStrings[i] = (*row).First + ": " + strconv.Itoa((*row).Second)
+						}
+						response = strings.Join(rowStrings, "\n")
+					}
+				}
+			}
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, response)
+			msg.ReplyToMessageID = update.Message.MessageID
+			_, e = app.tgBot.Send(msg)
+			if e != nil {
+				fmt.Println("Failed to send message:", e)
+			}
+		}
+		if update.UpdateID >= u.Offset {
+			u.Offset = update.UpdateID + 1
+		}
+	}
 }

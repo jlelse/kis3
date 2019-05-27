@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/gobuffalo/packr/v2"
 	"github.com/gorilla/mux"
 	"log"
@@ -14,6 +15,7 @@ import (
 type kis3 struct {
 	router    *mux.Router
 	staticBox *packr.Box
+	tgBot     *tgbotapi.BotAPI
 }
 
 var (
@@ -29,11 +31,13 @@ func init() {
 		log.Fatal("Database setup failed:", e)
 	}
 	initRouter()
+	initTelegramBot()
 }
 
 func main() {
 	go startListeningToWeb()
 	go startReports()
+	go startStatsTelegram()
 	// Graceful stop
 	var gracefulStop = make(chan os.Signal, 1)
 	signal.Notify(gracefulStop, os.Interrupt, syscall.SIGTERM)
@@ -46,6 +50,20 @@ func initRouter() {
 	app.router = mux.NewRouter()
 	initStatsRouter()
 	initTrackingRouter()
+}
+
+func initTelegramBot() {
+	if appConfig.TGBotToken == "" {
+		fmt.Println("Telegram not configured.")
+		return
+	}
+	bot, e := tgbotapi.NewBotAPI(appConfig.TGBotToken)
+	if e != nil {
+		fmt.Println("Failed to setup Telegram:", e)
+		return
+	}
+	fmt.Println("Authorized Telegram bot on account", bot.Self.UserName)
+	app.tgBot = bot
 }
 
 func startListeningToWeb() {

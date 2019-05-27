@@ -12,17 +12,12 @@ import (
 )
 
 type report struct {
-	Name         string `json:"name"`
-	Time         string `json:"time"`
-	Query        string `json:"query"`
-	Type         string `json:"type"`
-	To           string `json:"to"`
-	From         string `json:"from"`
-	SmtpUser     string `json:"smtpUser"`
-	SmtpPassword string `json:"smtpPassword"`
-	SmtpHost     string `json:"smtpHost"`
-	TGBotToken   string `json:"tgBotToken"`
-	TGUserId     int64  `json:"tgUserId"`
+	Name     string `json:"name"`
+	Time     string `json:"time"`
+	Query    string `json:"query"`
+	Type     string `json:"type"`
+	To       string `json:"to"`
+	TGUserId int64  `json:"tgUserId"`
 }
 
 func startReports() {
@@ -67,17 +62,17 @@ func sendReport(r *report, content []byte) {
 }
 
 func sendMail(r *report, content []byte) {
-	if r.To == "" || r.From == "" || r.SmtpUser == "" || r.SmtpHost == "" {
+	if r.To == "" || appConfig.SmtpFrom == "" || appConfig.SmtpUser == "" || appConfig.SmtpHost == "" {
 		fmt.Println("No valid report configuration")
 		return
 	}
-	smtpHostNoPort, _, _ := net.SplitHostPort(r.SmtpHost)
+	smtpHostNoPort, _, _ := net.SplitHostPort(appConfig.SmtpHost)
 	mail := email.NewEmail()
-	mail.From = r.From
+	mail.From = appConfig.SmtpFrom
 	mail.To = []string{r.To}
 	mail.Subject = "KISSS report: " + r.Name
 	mail.Text = content
-	e := mail.Send(r.SmtpHost, smtp.PlainAuth("", r.SmtpUser, r.SmtpPassword, smtpHostNoPort))
+	e := mail.Send(appConfig.SmtpHost, smtp.PlainAuth("", appConfig.SmtpUser, appConfig.SmtpPassword, smtpHostNoPort))
 	if e != nil {
 		fmt.Println("Sending report failed:", e)
 		return
@@ -87,17 +82,12 @@ func sendMail(r *report, content []byte) {
 }
 
 func sendTelegram(r *report, content []byte) {
-	if r.TGUserId == 0 || r.TGBotToken == "" {
+	if r.TGUserId == 0 || app.tgBot == nil {
 		fmt.Println("No valid report configuration")
 		return
 	}
-	bot, e := tgbotapi.NewBotAPI(r.TGBotToken)
-	if e != nil {
-		fmt.Println("Sending report failed:", e)
-		return
-	}
 	msg := tgbotapi.NewMessage(r.TGUserId, r.Name+"\n\n"+string(content))
-	_, e = bot.Send(msg)
+	_, e := app.tgBot.Send(msg)
 	if e != nil {
 		fmt.Println("Sending report failed:", e)
 		return
