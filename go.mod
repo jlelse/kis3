@@ -8,7 +8,7 @@ require (
 	github.com/gobuffalo/packr v1.25.0 // indirect
 	github.com/gobuffalo/packr/v2 v2.2.0
 	github.com/google/uuid v1.1.1 // indirect
-	github.com/gorilla/handlers v1.4.0
+	github.com/gorilla/handlers v1.4.1
 	github.com/gorilla/mux v1.7.2
 	github.com/jordan-wright/email v0.0.0-20190218024454-3ea4d25e7cf8
 	github.com/lib/pq v1.1.1 // indirect
