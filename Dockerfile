@@ -12,7 +12,7 @@ RUN GO111MODULE=on packr2
 RUN go test
 RUN go build github.com/kis3/kis3
 
-FROM alpine:3.9
+FROM alpine:3.10
 RUN apk add --no-cache tzdata ca-certificates && update-ca-certificates
 RUN adduser -S -D -H -h /app kis3
 COPY --from=build /app/kis3 /bin/
