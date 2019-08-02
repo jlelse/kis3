@@ -1,0 +1,3 @@
+-- +migrate Up
+ALTER TABLE views
+    ADD COLUMN bot INTEGER DEFAULT 0 NOT NULL;

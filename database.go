@@ -32,7 +32,7 @@ func initDatabase() (e error) {
 		return
 	}
 	e = migrateDatabase(db.sqlDB)
-	db.trackingStmt, e = db.sqlDB.Prepare("insert into views(url, ref, useragent) values(:url, :ref, :ua)")
+	db.trackingStmt, e = db.sqlDB.Prepare("insert into views(url, ref, useragent, bot) values(:url, :ref, :ua, :bot)")
 	if e != nil {
 		return
 	}
@@ -59,12 +59,17 @@ func trackView(urlString string, ref string, ua string) {
 		parsedRef, _ := url.Parse(ref)
 		ref = parsedRef.Hostname()
 	}
+	bot := 0
 	if ua != "" {
 		// Parse Useragent
-		uaName, uaVersion := user_agent.New(ua).Browser()
+		userAgent := user_agent.New(ua)
+		if userAgent.Bot() {
+			bot = 1
+		}
+		uaName, uaVersion := userAgent.Browser()
 		ua = uaName + " " + uaVersion
 	}
-	_, e := db.trackingStmt.Exec(sql.Named("url", urlString), sql.Named("ref", ref), sql.Named("ua", ua))
+	_, e := db.trackingStmt.Exec(sql.Named("url", urlString), sql.Named("ref", ref), sql.Named("ua", ua), sql.Named("bot", bot))
 	if e != nil {
 		fmt.Println("Inserting into DB failed:", e)
 	}
