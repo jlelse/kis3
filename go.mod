@@ -20,7 +20,7 @@ require (
 	github.com/whiteshtef/clockwork v0.0.0-20190417075149-ecf7d9abe8ec
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4 // indirect
-	golang.org/x/sys v0.0.0-20190712062909-fae7ac547cb7 // indirect
+	golang.org/x/sys v0.0.0-20190801041406-cbf593c0f2f3 // indirect
 	google.golang.org/appengine v1.6.1 // indirect
 	gopkg.in/gorp.v1 v1.7.2 // indirect
 )

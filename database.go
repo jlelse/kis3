@@ -105,6 +105,7 @@ type ViewsRequest struct {
 	ordercol string
 	order    string
 	limit    string
+	bots     string
 }
 
 type RequestResultRow struct {
@@ -214,6 +215,7 @@ func (request *ViewsRequest) buildFilter() (filters string, parameters []sql.Nam
 		request.buildUrlFilter(&parameters),
 		request.buildRefFilter(&parameters),
 		request.buildUseragentFilter(&parameters),
+		request.buildBotFilter(&parameters),
 	} {
 		if len(filter) > 0 {
 			allFilters = append(allFilters, filter)
@@ -269,10 +271,20 @@ func (request *ViewsRequest) buildRefFilter(namedArg *[]sql.NamedArg) (refFilter
 	return
 }
 
-func (request *ViewsRequest) buildUseragentFilter(namedArg *[]sql.NamedArg) (refFilter string) {
+func (request *ViewsRequest) buildUseragentFilter(namedArg *[]sql.NamedArg) (uaFilter string) {
 	if len(request.ua) > 0 {
 		*namedArg = append(*namedArg, sql.Named("ua", "%"+request.ua+"%"))
-		refFilter = "useragent like :ua"
+		uaFilter = "useragent like :ua"
+	}
+	return
+}
+
+func (request *ViewsRequest) buildBotFilter(namedArg *[]sql.NamedArg) (botFilter string) {
+	if len(request.bots) > 0 {
+		if request.bots == "0" || request.bots == "1" {
+			*namedArg = append(*namedArg, sql.Named("bot", request.bots))
+		}
+		botFilter = "bot like :bot"
 	}
 	return
 }

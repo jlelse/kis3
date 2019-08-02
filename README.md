@@ -94,6 +94,8 @@ The following filters are available:
 
 `ua`: filter user agents containing the string provided, so `Firefox` filters out all user agents that don't contain `Firefox`
 
+`bots`: filter out bots (`0`) or show only bots (`1`)
+
 `ordercol`: column to use for ordering, `first` for the data groups, `second` for the view counts
 
 `order`: select whether to use ascending order (`ASC`) or descending order (`DESC`)
@@ -120,7 +122,7 @@ KISSS has a feature that can send you daily reports. It basically requests the s
       // Email configuration
       "name": "Daily stats from KISSS",
       "time": "15:00",
-      "query": "view=pages&ordercol=second&order=desc",
+      "query": "view=pages&bots=0&ordercol=second&order=desc",
       "from": "myemailaddress@mydomain.tld",
       "to": "myemailaddress@mydomain.tld"
     },
@@ -129,7 +131,7 @@ KISSS has a feature that can send you daily reports. It basically requests the s
       "name": "Daily stats from KISSS",
       "type": "telegram", // Add this for Telegram
       "time": "15:00",
-      "query": "view=pages&ordercol=second&order=desc",
+      "query": "view=pages&bots=0&ordercol=second&order=desc",
       "tgUserId": 123456
     },
     {

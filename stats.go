@@ -81,6 +81,7 @@ func doRequest(queries url.Values) (result []*RequestResultRow, e error) {
 		ordercol: strings.ToLower(queries.Get("ordercol")),
 		order:    strings.ToUpper(queries.Get("order")),
 		limit:    queries.Get("limit"),
+		bots:     queries.Get("bots"),
 	})
 	return
 }
