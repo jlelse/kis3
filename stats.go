@@ -3,14 +3,15 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/kis3/kis3/helpers"
-	"github.com/whiteshtef/clockwork"
 	"html/template"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/kis3/kis3/helpers"
+	"github.com/whiteshtef/clockwork"
 )
 
 func initStatsRouter() {

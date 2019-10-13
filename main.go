@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/gobuffalo/packr/v2"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/gobuffalo/packr/v2"
+	"github.com/gorilla/mux"
 )
 
 type kis3 struct {
@@ -24,7 +25,8 @@ var (
 	}
 )
 
-func init() {
+func main() {
+	// Init
 	initConfig()
 	e := initDatabase()
 	if e != nil {
@@ -32,9 +34,7 @@ func init() {
 	}
 	initRouter()
 	initTelegramBot()
-}
-
-func main() {
+	// Start
 	go startListeningToWeb()
 	go startReports()
 	go startStatsTelegram()
