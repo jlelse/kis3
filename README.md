@@ -80,7 +80,7 @@ You can request statistics via the `/stats` endpoint and specifying filters via 
 
 The following filters are available:
 
-`view`: specify what data (and it's view counts) gets displayed, you have the option between `pages` (tracked URLS), `referrers` (tracked refererrers - only hostnames e.g. google.com), `useragents` (tracked useragents with version - browsers or crawl bots with version), `useragentnames` (tracked useragents without version), `hours` / `days` / `weeks` / `months` (tracks grouped by hours / days / weeks / months), `allhours` / `alldays` (tracks grouped by hours / days including hours or days with zero visits, spanning from first to last track in selection), `count` (count all tracked views where filters apply)
+`view`: specify what data (and it's view counts) gets displayed, you have the option between `pages` (tracked URLS), `referrers` (tracked refererrers - only hostnames e.g. google.com), `useragents` (tracked useragents with version - browsers or crawl bots with version), `useragentnames` (tracked useragents without version), `os` (tracked operating systems), `hours` / `days` / `weeks` / `months` (tracks grouped by hours / days / weeks / months), `allhours` / `alldays` (tracks grouped by hours / days including hours or days with zero visits, spanning from first to last track in selection), `count` (count all tracked views where filters apply)
 
 `from`: start time of the selection in the format `YYYY-MM-DD HH:MM`, e.g. `2019-01` or `2019-01-01 01:00`
 
@@ -93,6 +93,8 @@ The following filters are available:
 `ref`: filter referrers containing the string provided, so `word` filters out all refferers that don't contain `word`
 
 `ua`: filter user agents containing the string provided, so `Firefox` filters out all user agents that don't contain `Firefox`
+
+`os`: filter operating systems containing the string provided, so `Windows` filters out all operating systems that don't contain `Windows`
 
 `bots`: filter out bots (`0`) or show only bots (`1`)
 

@@ -32,7 +32,7 @@ func initDatabase() (e error) {
 		return
 	}
 	e = migrateDatabase(db.sqlDB)
-	db.trackingStmt, e = db.sqlDB.Prepare("insert into views(url, ref, useragent, bot) values(:url, :ref, :ua, :bot)")
+	db.trackingStmt, e = db.sqlDB.Prepare("insert into views(url, ref, useragent, bot, os) values(:url, :ref, :ua, :bot, :os)")
 	if e != nil {
 		return
 	}
@@ -60,6 +60,7 @@ func trackView(urlString string, ref string, ua string) {
 		ref = parsedRef.Hostname()
 	}
 	bot := 0
+	osString := ""
 	if ua != "" {
 		// Parse Useragent
 		userAgent := user_agent.New(ua)
@@ -68,8 +69,15 @@ func trackView(urlString string, ref string, ua string) {
 		}
 		uaName, uaVersion := userAgent.Browser()
 		ua = uaName + " " + uaVersion
+		osInfo := userAgent.OSInfo()
+		if osInfo.FullName != "" {
+			osString = osInfo.FullName
+			if osInfo.Version != "" {
+				osString += " " + osInfo.Version
+			}
+		}
 	}
-	_, e := db.trackingStmt.Exec(sql.Named("url", urlString), sql.Named("ref", ref), sql.Named("ua", ua), sql.Named("bot", bot))
+	_, e := db.trackingStmt.Exec(sql.Named("url", urlString), sql.Named("ref", ref), sql.Named("ua", ua), sql.Named("bot", bot), sql.Named("os", osString))
 	if e != nil {
 		fmt.Println("Inserting into DB failed:", e)
 	}
@@ -84,6 +92,7 @@ const (
 	REFERRERS
 	USERAGENTS
 	USERAGENTNAMES
+	OS
 	HOURS
 	DAYS
 	WEEKS
@@ -106,6 +115,7 @@ type ViewsRequest struct {
 	order    string
 	limit    string
 	bots     string
+	os       string
 }
 
 type RequestResultRow struct {
@@ -182,6 +192,8 @@ func (request *ViewsRequest) buildStatement() (statement string, parameters []sq
 		statement = "SELECT useragent as first, count(*) as second from views" + filters + "group by first" + orderStatement + limitStatement + ";"
 	case USERAGENTNAMES:
 		statement = "SELECT substr(useragent, 1, pos-1) as first, COUNT(*) as second from (SELECT *, instr(useragent,' ') AS pos FROM views)" + filters + "group by first" + orderStatement + limitStatement + ";"
+	case OS:
+		statement = "SELECT os as first, count(*) as second from views" + filters + "group by first" + orderStatement + limitStatement + ";"
 	case ALLHOURS:
 		statement = "WITH RECURSIVE hours(hour) AS ( VALUES (datetime(strftime('%Y-%m-%dT%H:00', (SELECT min(time) from views" + filters + "), 'localtime'))) UNION ALL SELECT datetime(hour, '+1 hour') FROM hours WHERE hour <= strftime('%Y-%m-%d %H', (SELECT max(time) from views" + filters + "), 'localtime') ) SELECT strftime('%Y-%m-%d %H', hours.hour) as first, COUNT(time) as second FROM hours LEFT OUTER JOIN (SELECT time from views" + filters + ") ON strftime('%Y-%m-%d %H', hours.hour) = strftime('%Y-%m-%d %H', time, 'localtime') GROUP BY first" + orderStatement + limitStatement + ";"
 	case ALLDAYS:
@@ -216,6 +228,7 @@ func (request *ViewsRequest) buildFilter() (filters string, parameters []sql.Nam
 		request.buildRefFilter(&parameters),
 		request.buildUseragentFilter(&parameters),
 		request.buildBotFilter(&parameters),
+		request.buildOSFilter(&parameters),
 	} {
 		if len(filter) > 0 {
 			allFilters = append(allFilters, filter)
@@ -285,6 +298,14 @@ func (request *ViewsRequest) buildBotFilter(namedArg *[]sql.NamedArg) (botFilter
 			*namedArg = append(*namedArg, sql.Named("bot", request.bots))
 		}
 		botFilter = "bot like :bot"
+	}
+	return
+}
+
+func (request *ViewsRequest) buildOSFilter(namedArg *[]sql.NamedArg) (osFilter string) {
+	if len(request.os) > 0 {
+		*namedArg = append(*namedArg, sql.Named("os", "%"+request.os+"%"))
+		osFilter = "os like :os"
 	}
 	return
 }

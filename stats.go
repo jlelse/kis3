@@ -55,6 +55,8 @@ func doRequest(queries url.Values) (result []*RequestResultRow, e error) {
 		view = USERAGENTS
 	case "useragentnames":
 		view = USERAGENTNAMES
+	case "os":
+		view = OS
 	case "hours":
 		view = HOURS
 	case "days":
@@ -83,6 +85,7 @@ func doRequest(queries url.Values) (result []*RequestResultRow, e error) {
 		order:    strings.ToUpper(queries.Get("order")),
 		limit:    queries.Get("limit"),
 		bots:     queries.Get("bots"),
+		os:       queries.Get("os"),
 	})
 	return
 }
