@@ -72,9 +72,6 @@ func trackView(urlString string, ref string, ua string) {
 		osInfo := userAgent.OSInfo()
 		if osInfo.FullName != "" {
 			osString = osInfo.FullName
-			if osInfo.Version != "" {
-				osString += " " + osInfo.Version
-			}
 		}
 	}
 	_, e := db.trackingStmt.Exec(sql.Named("url", urlString), sql.Named("ref", ref), sql.Named("ua", ua), sql.Named("bot", bot), sql.Named("os", osString))
