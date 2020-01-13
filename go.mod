@@ -13,7 +13,7 @@ require (
 	github.com/jordan-wright/email v0.0.0-20190819015918-041e0cec78b0
 	github.com/lib/pq v1.2.0 // indirect
 	github.com/mattn/go-sqlite3 v1.11.0
-	github.com/mssola/user_agent v0.5.0
+	github.com/mssola/user_agent v0.5.1
 	github.com/rogpeppe/go-internal v1.5.0 // indirect
 	github.com/rubenv/sql-migrate v0.0.0-20190902133344-8926f37f0bc1
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
