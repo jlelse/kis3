@@ -46,7 +46,7 @@ func parseConfigFile(appConfig *config) {
 	if e != nil {
 		return
 	}
-	e = json.Unmarshal([]byte(configJson), appConfig)
+	e = json.Unmarshal(configJson, appConfig)
 	if e != nil {
 		return
 	}
