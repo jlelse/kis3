@@ -9,7 +9,7 @@ require (
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.3
 	github.com/jordan-wright/email v0.0.0-20190819015918-041e0cec78b0
-	github.com/mattn/go-sqlite3 v2.0.2+incompatible
+	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mssola/user_agent v0.5.1
 	github.com/rubenv/sql-migrate v0.0.0-20191213152630-06338513c237
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
