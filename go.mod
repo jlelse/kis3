@@ -7,7 +7,7 @@ require (
 	github.com/gobuffalo/packr/v2 v2.7.1
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/gorilla/handlers v1.4.2
-	github.com/gorilla/mux v1.7.3
+	github.com/gorilla/mux v1.7.4
 	github.com/jordan-wright/email v0.0.0-20190819015918-041e0cec78b0
 	github.com/mattn/go-sqlite3 v2.0.2+incompatible
 	github.com/mssola/user_agent v0.5.1
