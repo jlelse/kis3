@@ -8,7 +8,7 @@ require (
 	github.com/gobuffalo/envy v1.9.0 // indirect
 	github.com/gobuffalo/logger v1.0.3 // indirect
 	github.com/gobuffalo/packd v1.0.0 // indirect
-	github.com/gobuffalo/packr/v2 v2.7.1
+	github.com/gobuffalo/packr/v2 v2.8.0
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.4
