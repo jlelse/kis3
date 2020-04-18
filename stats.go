@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/kis3/kis3/helpers"
+	"kis3.dev/kis3/helpers"
 	"github.com/whiteshtef/clockwork"
 )
 
