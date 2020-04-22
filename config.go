@@ -10,6 +10,7 @@ import (
 
 type config struct {
 	Port          string   `json:"port"`
+	BaseUrl       string   `json:"baseUrl"`
 	Dnt           bool     `json:"dnt"`
 	DbPath        string   `json:"dbPath"`
 	StatsUsername string   `json:"statsUsername"`
@@ -19,17 +20,15 @@ type config struct {
 	SmtpPassword  string   `json:"smtpPassword"`
 	SmtpHost      string   `json:"smtpHost"`
 	TGBotToken    string   `json:"tgBotToken"`
+	TGHookSecret  string   `json:"tgHookSecret"`
 	Reports       []report `json:"reports"`
 }
 
 var (
 	appConfig = &config{
-		Port:          "8080",
-		Dnt:           true,
-		DbPath:        "data/kis3.db",
-		StatsUsername: "",
-		StatsPassword: "",
-		TGBotToken:    "",
+		Port:   "8080",
+		Dnt:    true,
+		DbPath: "data/kis3.db",
 	}
 )
 
@@ -57,6 +56,10 @@ func overwriteEnvVarValues(appConfig *config) {
 	port, set := os.LookupEnv("PORT")
 	if set {
 		appConfig.Port = port
+	}
+	baseUrl, set := os.LookupEnv("BASE_URL")
+	if set {
+		appConfig.BaseUrl = baseUrl
 	}
 	dntString, set := os.LookupEnv("DNT")
 	dntBool, e := strconv.ParseBool(dntString)

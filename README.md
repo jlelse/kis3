@@ -32,6 +32,8 @@ You can configure some settings using a `config.json` file in the working direct
 
 `port` (`8080`): Set the port to which KISSS should listen
 
+`baseUrl` (optional, required for Telegram): Set the base URL on which KISSS runs
+
 `dnt` (`true`): Set whether or not KISSS should respect Do-Not-Track headers some browsers send
 
 `dbPath` (`data/kis3.db`): Set the path for the SQLite database (relative to the working directory - in the Docker container it's `/app`).
@@ -50,7 +52,7 @@ The configuration file can look like this:
 }
 ```
 
-If you specify an environment variable (`PORT`, `DNT`, `DB_PATH`, `STATS_USERNAME`, `STATS_PASSWORD`), that will override the settings from the configuration file.
+If you specify an environment variable (`PORT`, `BASE_URL`, `DNT`, `DB_PATH`, `STATS_USERNAME`, `STATS_PASSWORD`), that will override the settings from the configuration file.
 
 ### Email
 
@@ -68,7 +70,9 @@ To enable email integration for sending reports, you need to add some configurat
 
 The Telegram integration allows sending reports via Telegram and also requesting stats via Telegram. For that the following configuration value must be set:
 
-`tgBotToken`: Token for the Telegram bot, which you can request via the [Bot Father](https://t.me/BotFather).
+`tgBotToken`: Token for the Telegram bot, which you can request via the [Bot Father](https://t.me/BotFather)
+
+`tgHookSecret` (optional): Secret, so nobody (except KISSS and Telegram) knows the URL to which Telegram should send updates about new messages
 
 ## Add to website
 

@@ -9,9 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"kis3.dev/kis3/helpers"
-	"github.com/whiteshtef/clockwork"
 )
 
 func initStatsRouter() {
@@ -134,54 +132,31 @@ func sendChartResponse(result []*RequestResultRow, w http.ResponseWriter) {
 	_ = t.Execute(w, data)
 }
 
-func startStatsTelegram() {
-	if app.tgBot == nil {
-		return
-	}
-	u := tgbotapi.NewUpdate(0)
-	scheduler := clockwork.NewScheduler()
-	scheduler.Schedule().Every(5).Seconds().Do(func() {
-		checkForTelegramUpdates(&u)
-	})
-	scheduler.Run()
-}
-
-func checkForTelegramUpdates(u *tgbotapi.UpdateConfig) {
-	updates, e := app.tgBot.GetUpdates(*u)
-	if e != nil {
-		return
-	}
-	for _, update := range updates {
-		if update.Message != nil && update.Message.Command() == "stats" {
-			response := ""
-			fakeUrl, e := url.Parse("/stats?" + update.Message.CommandArguments())
-			if e != nil {
-				response = "Request failed"
+func respondToTelegramUpdate(u *telegramUpdate) {
+	if app.telegram != nil && strings.HasPrefix(u.Message.Text, "/stats") {
+		response := ""
+		fakeUrl, e := url.Parse("/stats?" + strings.TrimSpace(strings.TrimPrefix(u.Message.Text, "/stats")))
+		if e != nil {
+			response = "Request failed"
+		} else {
+			if appConfig.statsAuth() && (fakeUrl.Query().Get("username") != appConfig.StatsUsername || fakeUrl.Query().Get("password") != appConfig.StatsPassword) {
+				response = "Not authorized. Add username=yourusername&password=yourpassword to the query."
 			} else {
-				if appConfig.statsAuth() && (fakeUrl.Query().Get("username") != appConfig.StatsUsername || fakeUrl.Query().Get("password") != appConfig.StatsPassword) {
-					response = "Not authorized. Add username=yourusername&password=yourpassword to the query."
+				result, e := doRequest(fakeUrl.Query())
+				if e != nil {
+					response = "Request failed"
 				} else {
-					result, e := doRequest(fakeUrl.Query())
-					if e != nil {
-						response = "Request failed"
-					} else {
-						rowStrings := make([]string, len(result))
-						for i, row := range result {
-							rowStrings[i] = (*row).First + ": " + strconv.Itoa((*row).Second)
-						}
-						response = strings.Join(rowStrings, "\n")
+					rowStrings := make([]string, len(result))
+					for i, row := range result {
+						rowStrings[i] = (*row).First + ": " + strconv.Itoa((*row).Second)
 					}
+					response = strings.Join(rowStrings, "\n")
 				}
 			}
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, response)
-			msg.ReplyToMessageID = update.Message.MessageID
-			_, e = app.tgBot.Send(msg)
-			if e != nil {
-				fmt.Println("Failed to send message:", e)
-			}
 		}
-		if update.UpdateID >= u.Offset {
-			u.Offset = update.UpdateID + 1
+		e = app.telegram.replyToMessage(u.Message.Chat.Id, response, u.Message.Id)
+		if e != nil {
+			fmt.Println("Failed to send message:", e)
 		}
 	}
 }

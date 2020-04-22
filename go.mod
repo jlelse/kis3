@@ -4,7 +4,6 @@ go 1.14
 
 require (
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
-	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
 	github.com/gobuffalo/packr/v2 v2.8.0
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/gorilla/handlers v1.4.2
@@ -18,7 +17,6 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/rubenv/sql-migrate v0.0.0-20200401080106-baf4e4b6812c
 	github.com/sirupsen/logrus v1.5.0 // indirect
-	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	github.com/whiteshtef/clockwork v0.0.0-20200221012748-027e62affd84
 	golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59 // indirect
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a // indirect

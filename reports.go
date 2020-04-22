@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/jordan-wright/email"
 	"github.com/whiteshtef/clockwork"
 	"io/ioutil"
@@ -17,7 +16,7 @@ type report struct {
 	Query    string `json:"query"`
 	Type     string `json:"type"`
 	To       string `json:"to"`
-	TGUserId int64  `json:"tgUserId"`
+	TGUserId int    `json:"tgUserId"`
 }
 
 func startReports() {
@@ -82,12 +81,11 @@ func sendMail(r *report, content []byte) {
 }
 
 func sendTelegram(r *report, content []byte) {
-	if r.TGUserId == 0 || app.tgBot == nil {
+	if r.TGUserId == 0 || app.telegram == nil {
 		fmt.Println("No valid report configuration")
 		return
 	}
-	msg := tgbotapi.NewMessage(r.TGUserId, r.Name+"\n\n"+string(content))
-	_, e := app.tgBot.Send(msg)
+	e := app.telegram.sendMessage(r.TGUserId, r.Name+"\n\n"+string(content))
 	if e != nil {
 		fmt.Println("Sending report failed:", e)
 		return
