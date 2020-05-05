@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gorilla/handlers"
 	"net/http"
 )
@@ -23,8 +22,8 @@ func TrackingHandler(w http.ResponseWriter, r *http.Request) {
 	ua := r.Header.Get("User-Agent")
 	if !(r.Header.Get("DNT") == "1" && appConfig.Dnt) {
 		go trackView(url, ref, ua) // run with goroutine for awesome speed!
-		_, _ = fmt.Fprint(w, "true")
 	}
+	w.WriteHeader(201)
 }
 
 func TrackingScriptHandler(w http.ResponseWriter, r *http.Request) {
@@ -32,10 +31,10 @@ func TrackingScriptHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "public, max-age=432000") // 5 days
 	filename := "kis3.js"
 	file, err := app.staticBox.Open(filename)
+	defer func() { _ = file.Close() }()
 	if err != nil {
 		return
 	}
-	defer file.Close()
 	stat, err := file.Stat()
 	if err != nil {
 		return
