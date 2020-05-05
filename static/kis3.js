@@ -2,7 +2,11 @@
     var request = new XMLHttpRequest();
     var url = document.currentScript.src.replace("kis3.js", "view?url=" + window.decodeURI(window.location.href));
     if (document.referrer && document.referrer.length > 0) {
-        url += "&ref=" + window.decodeURI(document.referrer);
+        if (URL) {
+            url += "&ref=" + window.decodeURI(new URL(document.referrer).origin);
+        } else {
+            url += "&ref=" + window.decodeURI(document.referrer);
+        }
     }
     request.onload = function () {
         if (request.status >= 200 && request.status < 300) {
