@@ -9,14 +9,14 @@ import (
 	"strconv"
 	"strings"
 
-	"kis3.dev/kis3/helpers"
+	"git.jlel.se/jlelse/kis3/helpers"
 )
 
 func initStatsRouter() {
-	app.router.HandleFunc("/stats", StatsHandler)
+	app.router.HandleFunc("/stats", statsHandler)
 }
 
-func StatsHandler(w http.ResponseWriter, r *http.Request) {
+func statsHandler(w http.ResponseWriter, r *http.Request) {
 	// Require authentication
 	if appConfig.statsAuth() {
 		if !helpers.CheckAuth(w, r, appConfig.StatsUsername, appConfig.StatsPassword) {
@@ -33,7 +33,7 @@ func StatsHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "max-age=0")
 		switch queryValues.Get("format") {
 		case "json":
-			sendJsonResponse(result, w)
+			sendJSONResponse(result, w)
 		case "chart":
 			sendChartResponse(result, w)
 		default: // "plain"
@@ -95,7 +95,7 @@ func sendPlainResponse(result []*RequestResultRow, w http.ResponseWriter) {
 	}
 }
 
-func sendJsonResponse(result []*RequestResultRow, w http.ResponseWriter) {
+func sendJSONResponse(result []*RequestResultRow, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	jsonBytes, _ := json.Marshal(result)
 	_, _ = fmt.Fprintln(w, string(jsonBytes))
@@ -135,14 +135,14 @@ func sendChartResponse(result []*RequestResultRow, w http.ResponseWriter) {
 func respondToTelegramUpdate(u *telegramUpdate) {
 	if app.telegram != nil && strings.HasPrefix(u.Message.Text, "/stats") {
 		response := ""
-		fakeUrl, e := url.Parse("/stats?" + strings.TrimSpace(strings.TrimPrefix(u.Message.Text, "/stats")))
+		fakeURL, e := url.Parse("/stats?" + strings.TrimSpace(strings.TrimPrefix(u.Message.Text, "/stats")))
 		if e != nil {
 			response = "Request failed"
 		} else {
-			if appConfig.statsAuth() && (fakeUrl.Query().Get("username") != appConfig.StatsUsername || fakeUrl.Query().Get("password") != appConfig.StatsPassword) {
+			if appConfig.statsAuth() && (fakeURL.Query().Get("username") != appConfig.StatsUsername || fakeURL.Query().Get("password") != appConfig.StatsPassword) {
 				response = "Not authorized. Add username=yourusername&password=yourpassword to the query."
 			} else {
-				result, e := doRequest(fakeUrl.Query())
+				result, e := doRequest(fakeURL.Query())
 				if e != nil {
 					response = "Request failed"
 				} else {
